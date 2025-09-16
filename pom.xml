@@ -8,9 +8,10 @@
         <version>3.5.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.emiya</groupId>
+    <groupId>com.emiyaoj</groupId>
     <artifactId>EmiyaOJ</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
     <name>EmiyaOJ</name>
     <description>EmiyaOJ</description>
     <url/>
@@ -20,6 +21,10 @@
     <developers>
         <developer/>
     </developers>
+    <modules>
+        <module>oj-common</module>
+        <module>oj-service</module>
+    </modules>
     <scm>
         <connection/>
         <developerConnection/>
