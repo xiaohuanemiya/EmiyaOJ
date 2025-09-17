@@ -35,7 +35,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 // 允许访问的公共端点
                 .requestMatchers("/auth/**", "/public/**", "/common-message").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/**", "/doc.html", "/webjars/**").permitAll()
                 // 其他请求需要认证
                 .anyRequest().authenticated()
             )
