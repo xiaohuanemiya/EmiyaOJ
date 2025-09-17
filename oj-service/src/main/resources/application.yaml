@@ -1,0 +1,16 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: oj-service
+
+# JWT配置
+jwt:
+  secret: emiyaoj-security-jwt-secret-key-for-token-generation-must-be-at-least-32-chars
+  expiration: 86400000  # 24小时（毫秒）
+
+# 日志配置
+logging:
+  level:
+    com.emiyaoj: DEBUG
+    org.springframework.security: DEBUG
