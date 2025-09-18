@@ -2,17 +2,11 @@
 -- EmiyaOJ RBAC权限管理系统初始化数据
 -- ==============================
 
--- 初始化部门数据
-INSERT INTO `department` (`id`, `parent_id`, `dept_code`, `dept_name`, `sort_order`, `leader`, `status`, `create_by`) VALUES
-(1, 0, 'ROOT', '根部门', 0, 'admin', 1, 1),
-(2, 1, 'TECH', '技术部', 1, 'admin', 1, 1),
-(3, 1, 'ADMIN', '管理部', 2, 'admin', 1, 1);
-
 -- 初始化用户数据（密码为 123456，使用BCrypt加密）
-INSERT INTO `user` (`id`, `username`, `password`, `nickname`, `email`, `dept_id`, `status`, `create_by`) VALUES
-(1, 'admin', '$2a$10$7JB720yubVSObGJ2kXEMCOWjLrSxX4fV8ZbLOkk0qeDLyZYMi4h2K', '系统管理员', 'admin@emiyaoj.com', 3, 1, 1),
-(2, 'user', '$2a$10$7JB720yubVSObGJ2kXEMCOWjLrSxX4fV8ZbLOkk0qeDLyZYMi4h2K', '普通用户', 'user@emiyaoj.com', 2, 1, 1),
-(3, 'judge', '$2a$10$7JB720yubVSObGJ2kXEMCOWjLrSxX4fV8ZbLOkk0qeDLyZYMi4h2K', '判题员', 'judge@emiyaoj.com', 2, 1, 1);
+INSERT INTO `user` (`id`, `username`, `password`, `nickname`, `email`, `status`, `create_by`) VALUES
+(1, 'admin', '$2a$10$7JB720yubVSObGJ2kXEMCOWjLrSxX4fV8ZbLOkk0qeDLyZYMi4h2K', '系统管理员', 'admin@emiyaoj.com', 1, 1),
+(2, 'user', '$2a$10$7JB720yubVSObGJ2kXEMCOWjLrSxX4fV8ZbLOkk0qeDLyZYMi4h2K', '普通用户', 'user@emiyaoj.com', 1, 1),
+(3, 'judge', '$2a$10$7JB720yubVSObGJ2kXEMCOWjLrSxX4fV8ZbLOkk0qeDLyZYMi4h2K', '判题员', 'judge@emiyaoj.com', 1, 1);
 
 -- 初始化角色数据
 INSERT INTO `role` (`id`, `role_code`, `role_name`, `description`, `status`, `create_by`) VALUES
@@ -105,7 +99,7 @@ INSERT INTO `user_role` (`user_id`, `role_id`, `create_by`) VALUES
 
 -- 分配角色权限关系（超级管理员拥有所有权限）
 INSERT INTO `role_permission` (`role_id`, `permission_id`, `create_by`)
-SELECT 1, id, 1 FROM `sys_permission` WHERE `status` = 1;
+SELECT 1, id, 1 FROM `permission` WHERE `status` = 1;
 
 -- 管理员权限（除了超级管理员特有权限外的大部分权限）
 INSERT INTO `role_permission` (`role_id`, `permission_id`, `create_by`) VALUES

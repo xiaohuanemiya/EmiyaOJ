@@ -14,22 +14,21 @@ public class ResponseResult<T> {
         this.data = data;
     }
 
-    public ResponseResult<T> success(T data) {
-        this.code = 200;
-        this.msg = "Success";
-        this.data = data;
-        return this;
+
+    // 静态方法
+    public static <T> ResponseResult<T> success(T data) {
+        return new ResponseResult<>(200, "Success", data);
     }
-    public ResponseResult<T> success() {
-        this.code = 200;
-        this.msg = "Success";
-        this.data = null;
-        return this;
+
+    public static <T> ResponseResult<T> success() {
+        return new ResponseResult<>(200, "Success", null);
     }
-    public ResponseResult<T> error(int code, String msg) {
-        this.code = code;
-        this.msg = msg;
-        this.data = null;
-        return this;
+
+    public static <T> ResponseResult<T> fail(String msg) {
+        return new ResponseResult<>(500, msg, null);
+    }
+
+    public static <T> ResponseResult<T> fail(int code, String msg) {
+        return new ResponseResult<>(code, msg, null);
     }
 }
