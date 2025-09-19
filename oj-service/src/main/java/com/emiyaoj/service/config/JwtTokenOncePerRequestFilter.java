@@ -44,7 +44,7 @@ public class JwtTokenOncePerRequestFilter extends OncePerRequestFilter {
 
     // 添加白名单路径列表
     private final String[] whitelist = {
-            "/admin/emp/login",
+            "/auth/login",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/swagger-resources/**",

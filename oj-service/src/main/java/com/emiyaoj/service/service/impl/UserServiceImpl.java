@@ -300,8 +300,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 登录成功，生成jwt令牌
         Map<String, Object> claims = new HashMap<>();
         // 使用fastjson的方法，把对象转换成json字符串
-        String loginEmpString = JSON.toJSONString(userLogin);
-        claims.put(JwtClaimsConstant.USER_LOGIN, loginEmpString);
+        String loginUserString = JSON.toJSONString(userLogin);
+        claims.put(JwtClaimsConstant.USER_LOGIN, loginUserString);
         String token = JwtUtil.createJWT(
                 jwtProperties.getSecretKey(),
                 jwtProperties.getTtl(),
