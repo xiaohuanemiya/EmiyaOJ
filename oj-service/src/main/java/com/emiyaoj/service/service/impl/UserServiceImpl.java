@@ -1,25 +1,37 @@
 package com.emiyaoj.service.service.impl;
 
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.emiyaoj.common.constant.JwtClaimsConstant;
+import com.emiyaoj.common.properties.JwtProperties;
+import com.emiyaoj.common.utils.BaseContext;
+import com.emiyaoj.common.utils.JwtUtil;
+import com.emiyaoj.common.utils.RedisUtil;
+import com.emiyaoj.service.domain.dto.UserLoginDTO;
 import com.emiyaoj.service.domain.dto.UserQueryDTO;
 import com.emiyaoj.service.domain.dto.UserSaveDTO;
 import com.emiyaoj.service.domain.pojo.*;
+import com.emiyaoj.service.domain.vo.UserLoginVO;
 import com.emiyaoj.service.domain.vo.UserVO;
 import com.emiyaoj.service.mapper.*;
 import com.emiyaoj.service.service.IUserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +44,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
 
     private final UserRoleMapper userRoleMapper;
@@ -39,7 +52,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private final PermissionMapper permissionMapper;
     private final UserPermissionMapper userPermissionMapper;
     private final RolePermissionMapper rolePermissionMapper;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtProperties jwtProperties;
+    private final RedisUtil redisUtil;
+    private final AuthenticationManager authenticationManager;
+
 
     @Override
     public Page<UserVO> selectUserPage(UserQueryDTO queryDTO) {
@@ -259,6 +276,54 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 .filter(r -> r.getStatus() == 1)
                 .anyMatch(r -> r.getRoleCode().equals(roleCode));
     }
+
+    @Override
+    public UserLoginVO login(UserLoginDTO loginDTO) {
+        String username = loginDTO.getUsername();
+        String password = loginDTO.getPassword();
+
+        // 1. 封装用户登录表单，创建未认证Authentication对象
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, password);
+        // 2. 进行校验
+        Authentication authenticate = authenticationManager.authenticate(authentication);
+        // 3. 获取用户信息
+        if (Objects.isNull(authenticate)){
+            throw new RuntimeException("用户名或密码错误");
+        }
+        UserLogin userLogin = (UserLogin) authenticate.getPrincipal();
+        User user = userLogin.getUser();
+        if (user.getStatus() == 0){
+            throw new RuntimeException("账号被禁用");
+        }
+        log.info("用户 {} 登录成功", userLogin.getUser().getUsername());
+
+        // 登录成功，生成jwt令牌
+        Map<String, Object> claims = new HashMap<>();
+        // 使用fastjson的方法，把对象转换成json字符串
+        String loginEmpString = JSON.toJSONString(userLogin);
+        claims.put(JwtClaimsConstant.USER_LOGIN, loginEmpString);
+        String token = JwtUtil.createJWT(
+                jwtProperties.getSecretKey(),
+                jwtProperties.getTtl(),
+                claims);
+
+        // 存储redis白名单
+        String tokenKey = "token_" + token;
+        redisUtil.set(tokenKey, token, jwtProperties.getTtl());
+
+        BaseContext.setCurrentId(user.getId());
+
+
+        //3、返回实体对象
+        return UserLoginVO.builder()
+                .id(user.getId())
+                .token(token)
+                .username(user.getUsername())
+                .name(user.getUsername())
+                .build();
+
+    }
+
 
     private UserVO convertToVO(User user) {
         UserVO userVO = new UserVO();

@@ -9,6 +9,7 @@ import java.io.Serializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.springframework.security.core.GrantedAuthority;
 
 /**
  * <p>
@@ -22,7 +23,7 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("permission")
-public class Permission implements Serializable {
+public class Permission implements GrantedAuthority {
 
     private static final long serialVersionUID = 1L;
 
@@ -117,4 +118,8 @@ public class Permission implements Serializable {
     private Long updateBy;
 
 
+    @Override
+    public String getAuthority() {
+        return this.permissionCode;
+    }
 }

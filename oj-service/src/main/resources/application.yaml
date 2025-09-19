@@ -8,11 +8,19 @@ spring:
     username: root
     password: 123
     driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: 10.30.22.1
+      port: 6379
+
 
 # JWT配置
 jwt:
-  secret: emiyaoj-security-jwt-secret-key-for-token-generation-must-be-at-least-32-chars
-  expiration: 86400000  # 24小时（毫秒）
+  secret-key: EmiyaOJ-JWT-Secret-Key-2024-Very-Long-And-Secure-String-For-HMAC-SHA256-Algorithm # jwt签名加密秘钥 (至少32个字符以满足256位要求)
+  ttl: 7200000 # jwt过期时间, 毫秒
+  token-name: Authorization # 前端传递过来的令牌名称
+
+  # 24小时（毫秒）
 
 # 日志配置
 logging:

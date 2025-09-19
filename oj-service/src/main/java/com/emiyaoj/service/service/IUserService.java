@@ -1,8 +1,10 @@
 package com.emiyaoj.service.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.emiyaoj.service.domain.dto.UserLoginDTO;
 import com.emiyaoj.service.domain.dto.UserQueryDTO;
 import com.emiyaoj.service.domain.dto.UserSaveDTO;
+import com.emiyaoj.service.domain.vo.UserLoginVO;
 import com.emiyaoj.service.domain.vo.UserVO;
 import com.emiyaoj.service.domain.pojo.User;
 
@@ -82,4 +84,6 @@ public interface IUserService {
      * 检查用户是否拥有指定角色
      */
     boolean hasRole(Long userId, String roleCode);
+
+    UserLoginVO login(UserLoginDTO loginDTO);
 }
