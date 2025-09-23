@@ -1,8 +1,10 @@
 package com.emiyaoj.service.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.emiyaoj.service.domain.dto.RoleQueryDTO;
 import com.emiyaoj.service.domain.dto.RoleSaveDTO;
+import com.emiyaoj.service.domain.pojo.Role;
 import com.emiyaoj.service.domain.vo.RoleVO;
 
 import java.util.List;
@@ -15,7 +17,7 @@ import java.util.List;
  * @author EmiyaOJ
  * @since 2025-09-17
  */
-public interface IRoleService {
+public interface IRoleService extends IService<Role> {
 
     /**
      * 分页查询角色列表

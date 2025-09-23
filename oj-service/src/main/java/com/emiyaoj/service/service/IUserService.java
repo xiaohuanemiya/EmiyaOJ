@@ -1,6 +1,7 @@
 package com.emiyaoj.service.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.emiyaoj.service.domain.dto.UserLoginDTO;
 import com.emiyaoj.service.domain.dto.UserQueryDTO;
 import com.emiyaoj.service.domain.dto.UserSaveDTO;
@@ -18,7 +19,7 @@ import java.util.List;
  * @author EmiyaOJ
  * @since 2025-09-17
  */
-public interface IUserService {
+public interface IUserService extends IService<User> {
 
     /**
      * 分页查询用户列表
