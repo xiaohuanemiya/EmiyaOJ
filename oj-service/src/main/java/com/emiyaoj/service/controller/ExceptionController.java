@@ -1,6 +1,9 @@
 package com.emiyaoj.service.controller;
 
 import com.emiyaoj.common.domain.ResponseResult;
+import com.emiyaoj.common.exception.BadRequestException;
+import com.emiyaoj.common.exception.BaseException;
+import com.emiyaoj.common.exception.CustomerAuthenticationException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +23,22 @@ import java.nio.file.AccessDeniedException;
 @ControllerAdvice
 @RestController
 public class ExceptionController {
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseResult<?> badRequest(BadRequestException e) {
+        return ResponseResult.fail(500, e.getMessage());
+    }
+    
+    @ExceptionHandler(BaseException.class)
+    public ResponseResult<?> base(BaseException e) {
+//        log.warn("业务异常信息：{}", e.getResultEnum().message());
+        return ResponseResult.fail(e.getResultEnum().getCode(), e.getResultEnum().message());
+    }
+    
+    @ExceptionHandler(CustomerAuthenticationException.class)
+    public ResponseResult<?> customerAuth(CustomerAuthenticationException e) {
+        return ResponseResult.fail(500, e.getMessage());
+    }
+    
     // 主要是这个参数验证处理，其他的是挑可能用到的写
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseResult<?> dtoValidationException(ValidationException e) {
