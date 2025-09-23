@@ -116,3 +116,48 @@ EmiyaOJ/
                  |--UserServiceTest.java
 ```
 
+## 路由表
+
+| 路由                          | 请求方法 | 描述 |
+| ----------------------------- | -------- | ---- |
+| `/hello`                      | GET      |      |
+| `/user`                       | PUT      |      |
+| `/user`                       | POST     |      |
+| `/user/batch`                 | DELETE   |      |
+| `/user/page`                  | GET      |      |
+| `/user/{id}`                  | GET      |      |
+| `/user/{id}`                  | DELETE   |      |
+| `/user/{id}/has-permission`   | GET      |      |
+| `/user/{id}/has-role`         | GET      |      |
+| `/user/{id}/permissions`      | GET      |      |
+| `/user/{id}/reset-password`   | PUT      |      |
+| `/user/{id}/roles`            | PUT      |      |
+| `/user/{id}/status`           | PUT      |      |
+| `/role`                       | PUT      |      |
+| `/role`                       | POST     |      |
+| `/role/batch`                 | DELETE   |      |
+| `/role/exists`                | GET      |      |
+| `/role/list`                  | GET      |      |
+| `/role/page`                  | GET      |      |
+| `/role/user/{userId}`         | GET      |      |
+| `/role/{id}`                  | GET      |      |
+| `/role/{id}`                  | DELETE   |      |
+| `/role/{id}/permissions`      | GET      |      |
+| `/role/{id}/permissions`      | PUT      |      |
+| `/role/{id}/status`           | PUT      |      |
+| `/auth/login`                 | POST     |      |
+| `/auth/logout`                | POST     |      |
+| `/permission`                 | PUT      |      |
+| `/permission`                 | POST     |      |
+| `/permission/batch`           | DELETE   |      |
+| `/permission/button/{userId}` | GET      |      |
+| `/permission/exists`          | GET      |      |
+| `/permission/list`            | GET      |      |
+| `/permission/menu/{userId}`   | GET      |      |
+| `/permission/role/{roleId}`   | GET      |      |
+| `/permission/tree`            | GET      |      |
+| `/permission/user/{userId}`   | GET      |      |
+| `/permission/{id}`            | GET      |      |
+| `/permission/{id}`            | DELETE   |      |
+| `/permission/{id}/status`     | PUT      |      |
+
