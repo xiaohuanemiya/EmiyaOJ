@@ -1,5 +1,8 @@
 package com.emiyaoj.common.constant;
 
+import lombok.Getter;
+
+@Getter
 public enum ResultEnum {
     SUCCESS(200, "成功"),
     BAD_REQUEST(400, "错误请求"),
@@ -51,8 +54,12 @@ public enum ResultEnum {
     // 自定义业务相关 8000-8999
 
     ResultEnum(int i, String msg) {
-
+        this.code = i;
+        this.msg = msg;
     }
+    
+    private final int code;
+    private final String msg;
 
     public String message() {
         return "";
