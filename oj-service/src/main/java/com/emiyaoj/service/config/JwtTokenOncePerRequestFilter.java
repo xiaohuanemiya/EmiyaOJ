@@ -95,12 +95,13 @@ public class JwtTokenOncePerRequestFilter extends OncePerRequestFilter {
         if (ObjectUtils.isEmpty(token)) { // header没有token
             token = request.getParameter("Authorization");
         }
-        if (ObjectUtils.isEmpty(token)) {
+        if (ObjectUtils.isEmpty(token) || token.equals("undefined") || token.equals("null")) {
             throw new CustomerAuthenticationException("token为空");
         }
-        // redis进行校验
-        if (!redisUtil.hasKey("token_" + token)) {
-            throw new CustomerAuthenticationException("token已过期");
+        //从token中获取用户信息
+        // 去掉前缀 "Bearer "
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
         }
         // 校验token
         UserLogin userLogin;
@@ -110,6 +111,13 @@ public class JwtTokenOncePerRequestFilter extends OncePerRequestFilter {
             String loginUserString = claims.get(JwtClaimsConstant.USER_LOGIN).toString(); //JwtClaimsConstant.USER_LOGIN就是一个常量字符串“userLogin”
             // 把json字符串转为对象
             userLogin = JSON.parseObject(loginUserString, UserLogin.class);
+            // redis进行校验
+            if (!redisUtil.hasKey("token_" + userLogin.getUser().getId())) {
+                throw new CustomerAuthenticationException("token已过期");
+            }else {
+                //刷新token有效期
+                redisUtil.set("token_" + userLogin.getUser().getId(), token, jwtProperties.getTtl());
+            }
             log.info("当前员工id：{}", userLogin.getUser().getId());
             BaseContext.setCurrentId(userLogin.getUser().getId());
         } catch (Exception ex) {

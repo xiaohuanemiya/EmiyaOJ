@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 import java.io.Serializable;
+
+import com.emiyaoj.common.constant.PermissionTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -55,7 +57,7 @@ public class Permission implements GrantedAuthority {
      * 权限类型：1-菜单，2-按钮，3-接口
      */
     @TableField("permission_type")
-    private Integer permissionType;
+    private PermissionTypeEnum permissionType;
 
     /**
      * 路由路径
