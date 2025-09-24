@@ -2,6 +2,7 @@ package com.emiyaoj.service.service.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.emiyaoj.common.constant.JwtClaimsConstant;
@@ -109,6 +110,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         User user = new User();
         BeanUtils.copyProperties(saveDTO, user);
+        user.setId(IdWorker.getId());
         user.setPassword(passwordEncoder.encode(saveDTO.getPassword()));
         user.setStatus(saveDTO.getStatus() != null ? saveDTO.getStatus() : 1);
         user.setCreateTime(LocalDateTime.now());
@@ -308,7 +310,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 claims);
 
         // 存储redis白名单
-        String tokenKey = "token_" + token;
+        String tokenKey = "token_" + user.getId();
         redisUtil.set(tokenKey, token, jwtProperties.getTtl());
 
         BaseContext.setCurrentId(user.getId());

@@ -1,7 +1,9 @@
 package com.emiyaoj.service.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.emiyaoj.service.domain.dto.PermissionQueryDTO;
 import com.emiyaoj.service.domain.dto.PermissionSaveDTO;
+import com.emiyaoj.service.domain.pojo.Permission;
 import com.emiyaoj.service.domain.vo.PermissionVO;
 
 import java.util.List;
@@ -14,7 +16,7 @@ import java.util.List;
  * @author EmiyaOJ
  * @since 2025-09-17
  */
-public interface IPermissionService {
+public interface IPermissionService extends IService<Permission> {
 
     /**
      * 查询权限列表

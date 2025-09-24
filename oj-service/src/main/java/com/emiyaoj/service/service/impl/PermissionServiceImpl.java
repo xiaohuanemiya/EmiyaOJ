@@ -2,6 +2,7 @@ package com.emiyaoj.service.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.emiyaoj.common.constant.PermissionTypeEnum;
 import com.emiyaoj.service.domain.dto.PermissionQueryDTO;
 import com.emiyaoj.service.domain.dto.PermissionSaveDTO;
 import com.emiyaoj.service.domain.pojo.Permission;
@@ -286,9 +287,9 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
 
         // 设置权限类型描述
         switch (permission.getPermissionType()) {
-            case 1 -> permissionVO.setPermissionTypeDesc("菜单");
-            case 2 -> permissionVO.setPermissionTypeDesc("按钮");
-            case 3 -> permissionVO.setPermissionTypeDesc("接口");
+            case PermissionTypeEnum.MENU -> permissionVO.setPermissionTypeDesc("菜单");
+            case PermissionTypeEnum.BUTTON -> permissionVO.setPermissionTypeDesc("按钮");
+            case PermissionTypeEnum.LINK -> permissionVO.setPermissionTypeDesc("接口");
             default -> permissionVO.setPermissionTypeDesc("未知");
         }
 

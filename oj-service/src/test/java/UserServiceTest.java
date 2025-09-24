@@ -23,17 +23,17 @@ public class UserServiceTest {
         // boolean result = userService.saveUser(newUser);
         // assertTrue(result);
         UserSaveDTO userSaveDTO = new UserSaveDTO();
-        userSaveDTO.setUsername("testuser");
-        userSaveDTO.setPassword("password123");
-        userSaveDTO.setNickname("Test User");
+        userSaveDTO.setUsername("emiya");
+        userSaveDTO.setPassword("qianziyang1989");
+        userSaveDTO.setNickname("emiya");
         userService.saveUser(userSaveDTO);
     }
 
     @Test
     public void testUserLogin(){
         UserLoginDTO userLoginDTO = new UserLoginDTO();
-        userLoginDTO.setUsername("testuser");
-        userLoginDTO.setPassword("password123");
+        userLoginDTO.setUsername("emiya");
+        userLoginDTO.setPassword("qianziyang1989");
         UserLoginVO login = userService.login(userLoginDTO);
         System.out.println(login);
     }
