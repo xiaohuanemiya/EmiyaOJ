@@ -11,6 +11,7 @@ import com.emiyaoj.common.domain.PageVO;
 import com.emiyaoj.common.properties.JwtProperties;
 import com.emiyaoj.common.utils.BaseContext;
 import com.emiyaoj.common.utils.JwtUtil;
+import com.emiyaoj.common.utils.Permissions;
 import com.emiyaoj.common.utils.RedisUtil;
 import com.emiyaoj.service.domain.dto.UserLoginDTO;
 import com.emiyaoj.service.domain.dto.UserSaveDTO;
@@ -237,10 +238,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         List<Permission> permissions = permissionMapper.selectList(
             new LambdaQueryWrapper<Permission>().in(Permission::getId, rolePermissionIds)
         );
-        return permissions.stream()
-                .filter(p -> p.getStatus() == 1)
-                .map(Permission::getPermissionCode)
-                .collect(Collectors.toList());
+        
+        int code = 0;
+        for (Permission permission : permissions) {
+            code = code | permission.getPermissionCode();
+        }
+        
+//        return permissions.stream()
+//                .filter(p -> p.getStatus() == 1)
+//                .map(Permission::getPermissionCode)
+//                .collect(Collectors.toList());
+        return Permissions.parsePermissions(code);
     }
 
     @Override

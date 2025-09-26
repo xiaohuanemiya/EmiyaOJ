@@ -3,6 +3,7 @@ package com.emiyaoj.service.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.emiyaoj.common.utils.Permissions;
 import com.emiyaoj.service.domain.dto.RoleQueryDTO;
 import com.emiyaoj.service.domain.dto.RoleSaveDTO;
 import com.emiyaoj.service.domain.pojo.*;
@@ -195,12 +196,18 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements IR
         if (CollectionUtils.isEmpty(permissionIds)) {
             return List.of();
         }
-
+        
         List<Permission> permissions = permissionMapper.selectByIds(permissionIds);
-        return permissions.stream()
-                .filter(p -> p.getStatus() == 1)
-                .map(Permission::getPermissionCode)
-                .collect(Collectors.toList());
+        int code = 0;
+        for (Permission permission : permissions) {
+            code = code | permission.getPermissionCode();
+        }
+        
+//        return permissions.stream()
+//                .filter(p -> p.getStatus() == 1)
+//                .map(Permission::getPermissionCode)
+//                .collect(Collectors.toList());
+        return Permissions.parsePermissions(code);
     }
 
     @Override

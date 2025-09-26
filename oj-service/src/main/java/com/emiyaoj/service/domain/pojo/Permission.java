@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.io.Serializable;
 
 import com.emiyaoj.common.constant.PermissionTypeEnum;
+import com.emiyaoj.common.utils.Permissions;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -45,7 +46,7 @@ public class Permission implements GrantedAuthority {
      * 权限编码
      */
     @TableField("permission_code")
-    private String permissionCode;
+    private Integer permissionCode;  // 转换成比特位存储权限编码
 
     /**
      * 权限名称
@@ -122,6 +123,6 @@ public class Permission implements GrantedAuthority {
 
     @Override
     public String getAuthority() {
-        return this.permissionCode;
+        return Permissions.parsePermission(permissionCode);
     }
 }

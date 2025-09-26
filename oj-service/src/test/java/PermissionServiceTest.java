@@ -1,4 +1,5 @@
 import com.emiyaoj.common.constant.PermissionTypeEnum;
+import com.emiyaoj.common.utils.Permissions;
 import com.emiyaoj.service.OjApplication;
 import com.emiyaoj.service.domain.pojo.Permission;
 import com.emiyaoj.service.service.IPermissionService;
@@ -14,7 +15,8 @@ public class PermissionServiceTest {
     public void testPermissionService() {
         Permission permission = new Permission();
         permission.setPermissionName("用户菜单");
-        permission.setPermissionCode("USER.MENU");
+//        permission.setPermissionCode("USER.MENU");
+        permission.setPermissionCode(Permissions.USER_MENU);
         permission.setParentId(-1L);
         permission.setPermissionType(PermissionTypeEnum.MENU);
         permission.setPath("/user");
@@ -28,7 +30,8 @@ public class PermissionServiceTest {
     public void testPermissionService2() {
         Permission permission = new Permission();
         permission.setPermissionName("用户列表");
-        permission.setPermissionCode("USER.LIST");
+//        permission.setPermissionCode("USER.LIST");
+        permission.setPermissionCode(Permissions.USER_LIST);
         permission.setParentId(1L);
         permission.setPermissionType(PermissionTypeEnum.BUTTON);
         permission.setPath("/user/list");

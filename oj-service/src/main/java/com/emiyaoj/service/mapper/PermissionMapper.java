@@ -24,5 +24,5 @@ public interface PermissionMapper extends BaseMapper<Permission> {
      */
     List<Permission> findByUid(Long uid);
 
-    List<String> findCodeByUid(Long id);
+    List<Integer> findCodeByUid(Long id);
 }

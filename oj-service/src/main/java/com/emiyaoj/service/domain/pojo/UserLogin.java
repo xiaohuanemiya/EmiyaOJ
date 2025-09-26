@@ -1,6 +1,7 @@
 package com.emiyaoj.service.domain.pojo;
 
 import com.alibaba.fastjson2.annotation.JSONField;
+import com.emiyaoj.common.utils.Permissions;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,11 +20,12 @@ public class UserLogin implements UserDetails {
     private static final long serialVersionUID = 7330836274775504268L;
 
     private User user;
-    private List<String> permissions;
+    private int permissionCode;
+//    private List<String> permissions;
 
-    public UserLogin(User user, List<String> permissions) {
+    public UserLogin(User user, int permissionCode) {
         this.user = user;
-        this.permissions = permissions;
+        this.permissionCode = permissionCode;
     }
 
     //自定义一个权限列表的集合，中转操作
@@ -37,15 +39,16 @@ public class UserLogin implements UserDetails {
         if (authorities != null) {
             return authorities;
         }
-        authorities = new ArrayList<>();
-        for (String item : permissions) {
-            if (item != null && !item.trim().isEmpty()) {
-                // TODO: 考虑使用对象池优化对象创建
-                SimpleGrantedAuthority authority = new SimpleGrantedAuthority(item);
-                authorities.add(authority);
-            }
-        }
-        return authorities;
+//        authorities = new ArrayList<>();
+//        for (String item : permissions) {
+//            if (item != null && !item.trim().isEmpty()) {
+//                // TODO: 考虑使用对象池优化对象创建
+//                SimpleGrantedAuthority authority = new SimpleGrantedAuthority(item);
+//                authorities.add(authority);
+//            }
+//        }
+//        return authorities;
+        return Permissions.parseGrantedAuthorities(permissionCode);
     }
 
     // 获取密码

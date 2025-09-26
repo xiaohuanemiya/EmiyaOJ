@@ -40,12 +40,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException("");
         }
         // 2.赋权操作 查询数据库
-        List<String> list = permissionMapper.findCodeByUid(user.getId());
+        List<Integer> list = permissionMapper.findCodeByUid(user.getId());
 
-        for (String s : list) {
-            System.out.println(s);
+        int code = 0;
+        for (int i : list) {
+            code = code | i;
         }
 
-        return new UserLogin(user, list);
+        return new UserLogin(user, code);
     }
 }
