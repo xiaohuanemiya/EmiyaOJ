@@ -1,13 +1,14 @@
 package com.emiyaoj.service.service;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.emiyaoj.common.domain.PageDTO;
+import com.emiyaoj.common.domain.PageVO;
 import com.emiyaoj.service.domain.dto.UserLoginDTO;
-import com.emiyaoj.service.domain.dto.UserQueryDTO;
 import com.emiyaoj.service.domain.dto.UserSaveDTO;
 import com.emiyaoj.service.domain.vo.UserLoginVO;
 import com.emiyaoj.service.domain.vo.UserVO;
 import com.emiyaoj.service.domain.pojo.User;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -24,7 +25,7 @@ public interface IUserService extends IService<User> {
     /**
      * 分页查询用户列表
      */
-    Page<UserVO> selectUserPage(UserQueryDTO queryDTO);
+    PageVO<UserVO> selectUserPage2(@Valid PageDTO pageDTO);
 
     /**
      * 根据ID查询用户信息
@@ -87,4 +88,5 @@ public interface IUserService extends IService<User> {
     boolean hasRole(Long userId, String roleCode);
 
     UserLoginVO login(UserLoginDTO loginDTO);
+
 }
