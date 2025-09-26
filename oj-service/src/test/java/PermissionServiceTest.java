@@ -23,4 +23,18 @@ public class PermissionServiceTest {
         permission.setStatus(1);
         permissionService.save(permission);
     }
+
+    @Test
+    public void testPermissionService2() {
+        Permission permission = new Permission();
+        permission.setPermissionName("用户列表");
+        permission.setPermissionCode("USER.LIST");
+        permission.setParentId(1L);
+        permission.setPermissionType(PermissionTypeEnum.BUTTON);
+        permission.setPath("/user/list");
+        permission.setIcon("list");
+        permission.setSortOrder(1);
+        permission.setStatus(1);
+        permissionService.save(permission);
+    }
 }

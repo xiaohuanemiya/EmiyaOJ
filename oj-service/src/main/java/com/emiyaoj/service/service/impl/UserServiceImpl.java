@@ -6,12 +6,13 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.emiyaoj.common.constant.JwtClaimsConstant;
+import com.emiyaoj.common.domain.PageDTO;
+import com.emiyaoj.common.domain.PageVO;
 import com.emiyaoj.common.properties.JwtProperties;
 import com.emiyaoj.common.utils.BaseContext;
 import com.emiyaoj.common.utils.JwtUtil;
 import com.emiyaoj.common.utils.RedisUtil;
 import com.emiyaoj.service.domain.dto.UserLoginDTO;
-import com.emiyaoj.service.domain.dto.UserQueryDTO;
 import com.emiyaoj.service.domain.dto.UserSaveDTO;
 import com.emiyaoj.service.domain.pojo.*;
 import com.emiyaoj.service.domain.vo.UserLoginVO;
@@ -24,7 +25,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,28 +59,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private final AuthenticationManager authenticationManager;
 
 
-    @Override
-    public Page<UserVO> selectUserPage(UserQueryDTO queryDTO) {
-        Page<User> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+    public PageVO<UserVO> selectUserPage2(PageDTO query){
+        Page<User> page = query.toMpPageDefaultSortByCreateTimeDesc();
 
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StringUtils.hasText(queryDTO.getUsername()), User::getUsername, queryDTO.getUsername())
-               .like(StringUtils.hasText(queryDTO.getNickname()), User::getNickname, queryDTO.getNickname())
-               .like(StringUtils.hasText(queryDTO.getEmail()), User::getEmail, queryDTO.getEmail())
-               .like(StringUtils.hasText(queryDTO.getPhone()), User::getPhone, queryDTO.getPhone())
-               .eq(queryDTO.getStatus() != null, User::getStatus, queryDTO.getStatus())
-               .eq(User::getDeleted, 0)
-               .orderByDesc(User::getCreateTime);
-
-        Page<User> userPage = this.page(page, wrapper);
-
-        // 转换为VO并设置角色信息
-        List<UserVO> userVOList = userPage.getRecords().stream().map(this::convertToVO).collect(Collectors.toList());
-
-        Page<UserVO> result = new Page<>(userPage.getCurrent(), userPage.getSize(), userPage.getTotal());
-        result.setRecords(userVOList);
-
-        return result;
+        // 2.查询
+        page(page);
+        // 3.封装返回
+        return PageVO.of(page, this::convertToVO);
     }
 
     @Override
