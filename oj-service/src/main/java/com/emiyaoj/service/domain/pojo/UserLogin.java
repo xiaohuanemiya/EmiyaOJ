@@ -40,6 +40,7 @@ public class UserLogin implements UserDetails {
         authorities = new ArrayList<>();
         for (String item : permissions) {
             if (item != null && !item.trim().isEmpty()) {
+                // TODO: 考虑使用对象池优化对象创建
                 SimpleGrantedAuthority authority = new SimpleGrantedAuthority(item);
                 authorities.add(authority);
             }
