@@ -22,7 +22,7 @@ import java.util.List;
  * @since 2025-09-17
  */
 @RestController
-@RequestMapping("/permission")
+@RequestMapping("/api/permission")
 @RequiredArgsConstructor
 public class PermissionController {
 
