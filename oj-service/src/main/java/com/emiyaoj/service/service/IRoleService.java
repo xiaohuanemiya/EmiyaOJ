@@ -67,7 +67,7 @@ public interface IRoleService extends IService<Role> {
     /**
      * 获取角色的权限列表
      */
-    List<String> getRolePermissions(Long roleId);
+    List<Long> getRolePermissionIds(Long roleId);
 
     /**
      * 检查角色编码是否已存在

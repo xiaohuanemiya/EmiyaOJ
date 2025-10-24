@@ -189,7 +189,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements IR
     }
 
     @Override
-    public List<String> getRolePermissions(Long roleId) {
+    public List<Long> getRolePermissionIds(Long roleId) {
         List<Long> permissionIds = rolePermissionMapper.selectPermissionIdsByRoleId(roleId);
 
         if (CollectionUtils.isEmpty(permissionIds)) {
@@ -199,7 +199,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements IR
         List<Permission> permissions = permissionMapper.selectByIds(permissionIds);
         return permissions.stream()
                 .filter(p -> p.getStatus() == 1)
-                .map(Permission::getPermissionCode)
+                .map(Permission::getId)
                 .collect(Collectors.toList());
     }
 
