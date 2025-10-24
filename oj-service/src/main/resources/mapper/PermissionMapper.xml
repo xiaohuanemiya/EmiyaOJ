@@ -10,7 +10,7 @@
         WHERE ur.user_id = #{uid}
         GROUP BY p.id
     </select>
-    <select id="findCodeByUid" resultType="java.lang.String" parameterType="java.lang.Long">
+    <select id="findPermissionCodesByUserId" resultType="java.lang.String" parameterType="java.lang.Long">
         SELECT p.permission_code FROM permission p
         LEFT JOIN role_permission rp ON p.id = rp.permission_id
         LEFT JOIN user_role ur ON rp.role_id = ur.role_id

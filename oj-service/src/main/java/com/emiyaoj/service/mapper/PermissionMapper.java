@@ -3,7 +3,6 @@ package com.emiyaoj.service.mapper;
 import com.emiyaoj.service.domain.pojo.Permission;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -24,5 +23,5 @@ public interface PermissionMapper extends BaseMapper<Permission> {
      */
     List<Permission> findByUid(Long uid);
 
-    List<String> findCodeByUid(Long id);
+    List<String> findPermissionCodesByUserId(Long id);
 }

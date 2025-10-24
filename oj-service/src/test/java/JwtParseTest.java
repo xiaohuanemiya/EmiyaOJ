@@ -1,0 +1,20 @@
+import com.emiyaoj.common.properties.JwtProperties;
+import com.emiyaoj.common.utils.JwtUtil;
+import com.emiyaoj.service.OjApplication;
+import io.jsonwebtoken.Claims;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest(classes = OjApplication.class)
+public class JwtParseTest {
+    @Autowired
+    private JwtProperties jwtProperties;
+    @Test
+    public void testJwtParse() {
+        String token = "eyJhbGciOiJIUzUxMiJ9.eyJ1c2VyTG9naW4iOiJ7XCJhY2NvdW50Tm9uRXhwaXJlZFwiOnRydWUsXCJhY2NvdW50Tm9uTG9ja2VkXCI6dHJ1ZSxcImNyZWRlbnRpYWxzTm9uRXhwaXJlZFwiOnRydWUsXCJlbmFibGVkXCI6dHJ1ZSxcInBhc3N3b3JkXCI6XCIkMmEkMTAkdWkwalo1cFkvLy9iQWlKSVMxTWtMZVdENHQvbktQYzNieEJPTHNnZ2xocVFzUTZhWDlpRmFcIixcInBlcm1pc3Npb25zXCI6W1wiUk9MRVwiLFwiUk9MRS5BRERcIixcIlJPTEUuQVNTSUdOXCIsXCJST0xFLkRFTEVURVwiLFwiUk9MRS5FRElUXCIsXCJST0xFLkxJU1RcIixcIlVTRVJcIixcIlVTRVIuQUREXCIsXCJVU0VSLkRFTEVURVwiLFwiVVNFUi5FRElUXCIsXCJVU0VSLkxJU1RcIl0sXCJ1c2VyXCI6e1wiY3JlYXRlVGltZVwiOlwiMjAyNS0wOS0yNCAxNTowMTo1NVwiLFwiZGVsZXRlZFwiOjAsXCJpZFwiOjE5NzA3NDU0OTQ4NTczMTAyMTAsXCJuaWNrbmFtZVwiOlwiZW1peWFcIixcInBhc3N3b3JkXCI6XCIkMmEkMTAkdWkwalo1cFkvLy9iQWlKSVMxTWtMZVdENHQvbktQYzNieEJPTHNnZ2xocVFzUTZhWDlpRmFcIixcInN0YXR1c1wiOjEsXCJ1cGRhdGVUaW1lXCI6XCIyMDI1LTA5LTI0IDE1OjAxOjU1XCIsXCJ1c2VybmFtZVwiOlwiZW1peWFcIn0sXCJ1c2VybmFtZVwiOlwiZW1peWFcIn0iLCJleHAiOjE3NjEyOTAyMTZ9.xzslgMPR9onviubn-wwACZnxTErQfkQSDEmyvcPFxQ8VQysoQlgVcqGrsIUcwWfbvQQMwlkhrDv0z4DD6Nt7sA";
+
+        Claims claims = JwtUtil.parseJWT(jwtProperties.getSecretKey(), token);
+        System.out.println("解析结果：" + claims);
+    }
+}
