@@ -40,7 +40,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException("");
         }
         // 2.赋权操作 查询数据库
-        List<String> list = permissionMapper.findCodeByUid(user.getId());
+        List<String> list = permissionMapper.findPermissionCodesByUserId(user.getId());
 
         for (String s : list) {
             System.out.println(s);

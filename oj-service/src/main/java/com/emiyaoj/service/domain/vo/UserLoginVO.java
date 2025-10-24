@@ -1,5 +1,6 @@
 package com.emiyaoj.service.domain.vo;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +15,7 @@ public class UserLoginVO {
     private static final long serialVersionUID = 4393557997355879737L;
 
     @Schema(description = "用户ID")
+    @JSONField(serializeFeatures = com.alibaba.fastjson2.JSONWriter.Feature.WriteLongAsString)
     private Long id;
 
     @Schema(description = "用户名")

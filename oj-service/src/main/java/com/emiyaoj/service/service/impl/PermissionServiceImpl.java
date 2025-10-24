@@ -212,7 +212,7 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
         List<PermissionVO> rootPermissions = new ArrayList<>();
 
         for (PermissionVO permission : permissions) {
-            if (permission.getParentId() == null || permission.getParentId() == 0) {
+            if (permission.getParentId() == null || permission.getParentId() == -1) {
                 rootPermissions.add(permission);
             } else {
                 PermissionVO parent = permissionMap.get(permission.getParentId());
