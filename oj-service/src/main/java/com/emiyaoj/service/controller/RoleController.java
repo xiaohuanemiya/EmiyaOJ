@@ -127,9 +127,9 @@ public class RoleController {
      */
     @GetMapping("/{id}/permissions")
     @PreAuthorize("hasAuthority('ROLE.LIST')")
-    public ResponseResult<List<String>> getRolePermissions(@PathVariable Long id) {
-        List<String> permissions = roleService.getRolePermissions(id);
-        return ResponseResult.success(permissions);
+    public ResponseResult<List<Long>> getRolePermissionIds(@PathVariable Long id) {
+        List<Long> permissionIds = roleService.getRolePermissionIds(id);
+        return ResponseResult.success(permissionIds);
     }
 
     /**
