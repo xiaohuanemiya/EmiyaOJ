@@ -142,23 +142,5 @@ public class PermissionController {
         return ResponseResult.success(permissions);
     }
 
-    /**
-     * 获取用户菜单权限树
-     */
-    @GetMapping("/menu/{userId}")
-    @PreAuthorize("hasAuthority('PERMISSION.LIST')")
-    public ResponseResult<List<PermissionVO>> getMenuTree(@PathVariable Long userId) {
-        List<PermissionVO> menuTree = permissionService.getMenuTree(userId);
-        return ResponseResult.success(menuTree);
-    }
 
-    /**
-     * 获取用户按钮权限列表
-     */
-    @GetMapping("/button/{userId}")
-    @PreAuthorize("hasAuthority('PERMISSION.LIST')")
-    public ResponseResult<List<String>> getButtonPermissions(@PathVariable Long userId) {
-        List<String> buttonPermissions = permissionService.getButtonPermissions(userId);
-        return ResponseResult.success(buttonPermissions);
-    }
 }
