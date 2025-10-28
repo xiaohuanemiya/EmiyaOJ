@@ -40,7 +40,7 @@ public class AuthController {
      */
     @PostMapping("/logout")
     @Operation(summary = "退出登录")
-    public ResponseResult logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseResult<?> logout(HttpServletRequest request, HttpServletResponse response) {
         log.info("员工ID：{}，退出登录", BaseContext.getCurrentId());
 
         String token = request.getHeader("Authorization");
