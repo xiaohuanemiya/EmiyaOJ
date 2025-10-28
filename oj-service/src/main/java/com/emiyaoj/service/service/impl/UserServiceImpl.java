@@ -51,7 +51,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private final UserRoleMapper userRoleMapper;
     private final RoleMapper roleMapper;
     private final PermissionMapper permissionMapper;
-    private final UserPermissionMapper userPermissionMapper;
     private final RolePermissionMapper rolePermissionMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtProperties jwtProperties;
@@ -59,11 +58,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private final AuthenticationManager authenticationManager;
 
 
-    public PageVO<UserVO> selectUserPage2(PageDTO query){
+    public PageVO<UserVO> selectUserPage(PageDTO query){
         Page<User> page = query.toMpPageDefaultSortByCreateTimeDesc();
 
-        // 2.查询
-        page(page);
+        // 2.查询，过滤已删除的用户
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getDeleted, 0);
+        page(page, wrapper);
         // 3.封装返回
         return PageVO.of(page, this::convertToVO);
     }
@@ -85,23 +86,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         return this.getOne(wrapper);
     }
 
+    private User selectUserByUsernameNoMatterDeleted(String username) {
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, username);
+        return this.getOne(wrapper);
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean saveUser(UserSaveDTO saveDTO) {
-        // 检查用户名是否已存在
-        if (selectUserByUsername(saveDTO.getUsername()) != null) {
+        // 检查用户名是否已存在,若存在但已被删除，则允许新增，调用修改接口恢复
+        User existingUser = selectUserByUsernameNoMatterDeleted(saveDTO.getUsername());
+        if (existingUser != null && existingUser.getDeleted()==0) {
             throw new RuntimeException("用户名已存在");
         }
 
+
         User user = new User();
         BeanUtils.copyProperties(saveDTO, user);
-        user.setId(IdWorker.getId());
+        if (existingUser != null) {
+            user.setId(existingUser.getId()==null ? IdWorker.getId() : existingUser.getId());
+        } else {
+            user.setId(IdWorker.getId());
+        }
         user.setPassword(passwordEncoder.encode(saveDTO.getPassword()));
         user.setStatus(saveDTO.getStatus() != null ? saveDTO.getStatus() : 1);
         user.setCreateTime(LocalDateTime.now());
         user.setUpdateTime(LocalDateTime.now());
+        user.setDeleted(0);
 
-        boolean result = this.save(user);
+        boolean result = this.saveOrUpdate(user);
 
         // 分配角色
         if (result && !CollectionUtils.isEmpty(saveDTO.getRoleIds())) {
@@ -157,7 +171,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         // 同时删除用户角色关联
         userRoleMapper.deleteByUserId(id);
-        userPermissionMapper.deleteByUserId(id);
 
         return this.updateById(user);
     }
@@ -218,16 +231,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (!CollectionUtils.isEmpty(roleIds)) {
             rolePermissionIds = rolePermissionMapper.selectPermissionIdsByRoleIds(roleIds);
         }
-
-        // 获取用户直接授予的权限
-        List<Long> grantedPermissionIds = userPermissionMapper.selectGrantedPermissionIdsByUserId(userId);
-
-        // 获取用户直接拒绝的权限
-        List<Long> deniedPermissionIds = userPermissionMapper.selectDeniedPermissionIdsByUserId(userId);
-
-        // 合并权限ID（去除被拒绝的权限）
-        rolePermissionIds.addAll(grantedPermissionIds);
-        rolePermissionIds.removeAll(deniedPermissionIds);
 
         if (CollectionUtils.isEmpty(rolePermissionIds)) {
             return new ArrayList<>();
