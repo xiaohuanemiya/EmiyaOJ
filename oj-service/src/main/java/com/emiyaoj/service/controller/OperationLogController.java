@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2025-09-17
  */
 @RestController
-@RequestMapping("/api/operation-log")
+@RequestMapping("/operation-log")
 public class OperationLogController {
 
 }

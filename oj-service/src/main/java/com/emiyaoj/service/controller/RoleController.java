@@ -23,7 +23,7 @@ import java.util.List;
  * @since 2025-09-17
  */
 @RestController
-@RequestMapping("/api/role")
+@RequestMapping("/role")
 @RequiredArgsConstructor
 public class RoleController {
 
