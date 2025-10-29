@@ -1,10 +1,12 @@
 package com.emiyaoj.service.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.emiyaoj.service.domain.dto.BlogQueryDTO;
-import com.emiyaoj.service.domain.dto.BlogSaveDTO;
+import com.emiyaoj.common.domain.PageDTO;
+import com.emiyaoj.common.domain.PageVO;
+import com.emiyaoj.service.domain.dto.*;
 import com.emiyaoj.service.domain.pojo.Blog;
 import com.emiyaoj.service.domain.vo.BlogVO;
+import com.emiyaoj.service.domain.vo.CommentVO;
 
 import java.util.List;
 
@@ -17,9 +19,23 @@ import java.util.List;
 public interface IBlogService extends IService<Blog> {
     List<BlogVO> selectAll();
     
-    List<BlogVO> select(BlogQueryDTO blogQueryDTO);
+    PageVO<BlogVO> select(BlogQueryDTO blogQueryDTO);
     
     boolean saveBlog(BlogSaveDTO blogSaveDTO);
     
-    BlogVO selectBlogById(Long id);
+    BlogVO selectBlogById(Long blogId);
+    
+    boolean deleteBlogById(Long blogId);
+    
+    boolean editBlog(BlogEditDTO blogEditDTO);
+    
+    PageVO<CommentVO> selectCommentPage(Long blogId, PageDTO pageDTO);
+    
+    CommentVO selectCommentById(Long commentId);
+    
+    List<CommentVO> selectComment(CommentQueryDTO queryDTO);
+    
+    boolean saveComment(Long blogId, BlogCommentSaveDTO blogCommentSaveDTO);
+    
+    boolean deleteComment(Long commentId);
 }

@@ -1,14 +1,13 @@
 package com.emiyaoj.service.controller;
 
+import com.emiyaoj.common.domain.PageDTO;
+import com.emiyaoj.common.domain.PageVO;
 import com.emiyaoj.common.domain.ResponseResult;
-import com.emiyaoj.service.config.Debug;
-import com.emiyaoj.service.domain.dto.BlogQueryDTO;
-import com.emiyaoj.service.domain.dto.BlogSaveDTO;
-import com.emiyaoj.service.domain.vo.BlogVO;
+import com.emiyaoj.service.domain.dto.*;
+import com.emiyaoj.service.domain.vo.*;
 import com.emiyaoj.service.service.IBlogService;
 import com.emiyaoj.service.service.IUserBlogService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,88 +19,92 @@ public class BlogController {
     private final IUserBlogService userBlogService;
     private final IBlogService blogService;
     
-    @Value("${debug.blog.enabled}")
-    private boolean DebugEnabled;
-    
-    @Value("${debug.blog.blog}")
-    private boolean DebugBlogBlog;
-    
-    @Value("${debug.blog.comment}")
-    private boolean DebugBlogComment;
-    
-    @Value("${debug.blog.user}")
-    private boolean DebugBlogUser;
-    
     @GetMapping("")
     public ResponseResult<List<BlogVO>> blogs() {
         List<BlogVO> vos = blogService.selectAll();
-        Debug.trace(DebugEnabled && DebugBlogBlog, vos);
         return ResponseResult.success(vos);
     }
     
     @PostMapping("")
-    public ResponseResult<?> addBlog(BlogSaveDTO blogSaveDTO) {
+    public ResponseResult<?> addBlog(@RequestBody BlogSaveDTO blogSaveDTO) {
         boolean success = blogService.saveBlog(blogSaveDTO);
         return success ? ResponseResult.success() : ResponseResult.fail("添加失败");
     }
     
     @PostMapping("/query")
-    public ResponseResult<?> queryBlog(BlogQueryDTO blogQueryDTO) {
-        List<BlogVO> vos = blogService.select(blogQueryDTO);
-        Debug.trace(DebugEnabled && DebugBlogComment, vos);
+    public ResponseResult<PageVO<BlogVO>> queryBlog(@RequestBody BlogQueryDTO blogQueryDTO) {
+        PageVO<BlogVO> vos = blogService.select(blogQueryDTO);
         return ResponseResult.success(vos);
     }
     
-    @GetMapping("/{tid}")
-    public ResponseResult<?> getBlog(@PathVariable Long tid) {
-        return null;  // TODO: 某一博客基本信息
+    @GetMapping("/{bid}")
+    public ResponseResult<BlogVO> getBlog(@PathVariable Long bid) {
+        BlogVO vo = blogService.selectBlogById(bid);
+        return vo != null ? ResponseResult.success(vo) : ResponseResult.fail("未找到该博客");
     }
     
-    @DeleteMapping("/{tid}")
-    public ResponseResult<?> deleteBlog(@PathVariable Long tid) {
-        return null;  // TODO: 删除博客
+    @DeleteMapping("/{bid}")
+    public ResponseResult<?> deleteBlog(@PathVariable Long bid) {
+        boolean success = blogService.deleteBlogById(bid);
+        return success ? ResponseResult.success() : ResponseResult.fail("删除失败");
     }
     
-    @PutMapping("/{tid}")
-    public ResponseResult<?> editBlog(@PathVariable Long tid) {
-        return null;  // TODO: 编辑博客基本信息
+    @PutMapping("/{bid}")
+    public ResponseResult<?> editBlog(@PathVariable Long bid, @RequestBody BlogEditDTO blogEditDTO) {
+        boolean success = blogService.editBlog(blogEditDTO);
+        return success ? ResponseResult.success() : ResponseResult.fail("修改失败");
     }
     
-    @GetMapping("/{tid}/comments")
-    public ResponseResult<?> comments(@PathVariable Long tid) {
-        return null;  // TODO: 分页查指定博客评论
+    @GetMapping("/{bid}/comments")
+    public ResponseResult<PageVO<CommentVO>> selectCommentPage(@PathVariable Long bid,
+                                                               @RequestBody PageDTO pageDTO) {
+        PageVO<CommentVO> vos = blogService.selectCommentPage(bid, pageDTO);
+        return vos != null ? ResponseResult.success(vos) : ResponseResult.fail("未找到该博客");
     }
     
-    @PostMapping("/{tid}/comments")
-    public ResponseResult<?> addComment(@PathVariable Long tid) {
-        return null;  // TODO: 发表评论
+    @PostMapping("/{bid}/comments")
+    public ResponseResult<?> addComment(@PathVariable Long bid, @RequestBody BlogCommentSaveDTO blogCommentSaveDTO) {
+        boolean success = blogService.saveComment(bid, blogCommentSaveDTO);
+        return success ? ResponseResult.success() : ResponseResult.fail("添加失败");
     }
     
-    @PostMapping("/{tid}/star")
-    public ResponseResult<?> starBlog(@PathVariable Long tid) {
-        return null;  // TODO: 收藏博客
+    @PostMapping("/{bid}/star")
+    public ResponseResult<?> starBlog(@PathVariable Long bid) {
+        boolean success = userBlogService.starBlog(bid);
+        return success ? ResponseResult.success() : ResponseResult.fail("添加失败");
     }
     
     @GetMapping("/user/{uid}")
-    public ResponseResult<?> userBlog(@PathVariable Long uid) {
-        return null;  // TODO: 查询博客模块用户信息
+    public ResponseResult<UserBlogVO> userBlog(@PathVariable Long uid) {
+        UserBlogVO vo = userBlogService.selectUserBlogById(uid);
+        return vo != null ? ResponseResult.success(vo) : ResponseResult.fail("未找到该用户");
     }
     
     @PostMapping("/user/{uid}/blogs")
-    public ResponseResult<?> userBlogBlogs(@PathVariable Long uid) {
-        return null;  // TODO: 查询用户发表的博客
+    public ResponseResult<PageVO<UserBlogBlogVO>> userBlogBlogs(@PathVariable Long uid, @RequestBody UserBlogBlogsQueryDTO blogsQueryDTO) {
+        PageVO<UserBlogBlogVO> pageVO = userBlogService.selectUserBlogBlogs(blogsQueryDTO);
+        return pageVO != null ? ResponseResult.success(pageVO) : ResponseResult.fail("未找到该用户");
     }
     
     @PostMapping("/user/{uid}/stars")
-    public ResponseResult<?> userBlogStars(@PathVariable Long uid) {
-        return null;  // TODO: 查询用户收藏的博客
+    public ResponseResult<PageVO<UserBlogStarVO>> userBlogStars(@PathVariable Long uid, @RequestBody UserBlogStarsQueryDTO starsQueryDTO) {
+        PageVO<UserBlogStarVO> pageVO = userBlogService.selectUserBlogStars(starsQueryDTO);
+        return pageVO != null ? ResponseResult.success(pageVO) : ResponseResult.fail("未找到该用户");
+    }
+    
+    @PostMapping("/comments")
+    public ResponseResult<List<CommentVO>> queryComments(@RequestBody CommentQueryDTO queryDTO) {
+        List<CommentVO> comments = blogService.selectComment(queryDTO);
+        return comments != null ? ResponseResult.success(comments) : ResponseResult.fail("未找到该用户");
     }
     
     @GetMapping("/comments/{cid}")
-    public ResponseResult<?> getComment(@PathVariable Long cid) {
-        return null;  // TODO: 获取指定评论（管理员）
+    public ResponseResult<CommentVO> getComment(@PathVariable Long cid) {
+        CommentVO vo = blogService.selectCommentById(cid);
+        return null;
     }
     
+    @Deprecated
     @PutMapping("/comments/{cid}")
     public ResponseResult<?> editComment(@PathVariable Long cid) {
         return null;  // TODO: 修改已发表评论（管理员）
@@ -109,6 +112,7 @@ public class BlogController {
     
     @DeleteMapping("/comments/{cid}")
     public ResponseResult<?> deleteComment(@PathVariable Long cid) {
-        return null;  // TODO: 删除评论
+        boolean success = blogService.deleteComment(cid);
+        return success ? ResponseResult.success() : ResponseResult.fail("删除失败");
     }
 }
