@@ -55,3 +55,14 @@ knife4j:
   enable: true
   setting:
     language: zh_cn
+
+
+debug:
+  enabled: true
+  auth:
+    enabled: true
+  blog:
+    enabled: true
+    blog: false
+    comment: false
+    user: false
