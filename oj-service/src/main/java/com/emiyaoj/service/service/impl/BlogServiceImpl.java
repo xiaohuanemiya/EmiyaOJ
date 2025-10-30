@@ -10,10 +10,9 @@ import com.emiyaoj.service.domain.pojo.*;
 import com.emiyaoj.service.domain.vo.BlogTagVO;
 import com.emiyaoj.service.domain.vo.BlogVO;
 import com.emiyaoj.service.domain.vo.CommentVO;
-import com.emiyaoj.service.mapper.BlogMapper;
-import com.emiyaoj.service.mapper.BlogTagAssociationMapper;
-import com.emiyaoj.service.mapper.BlogTagMapper;
+import com.emiyaoj.service.mapper.*;
 import com.emiyaoj.service.service.IBlogService;
+import com.emiyaoj.service.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -23,7 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * <h1>博客服务实现类</h1>
@@ -37,11 +39,13 @@ import java.util.List;
 public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IBlogService {
     private final BlogTagMapper blogTagMapper;
     private final BlogTagAssociationMapper blogTagAssociationMapper;
-    private final 
+    private final UserRoleMapper userRoleMapper;
+    private final RoleMapper roleMapper;
     
     @Override
     public List<BlogVO> selectAll() {
         return list().stream()
+               .filter(b -> b.getDeleted() == 0)
                .map(b -> new BlogVO(b.getId(), b.getUserId(), b.getTitle(), b.getContent(), b.getCreateTime(), b.getUpdateTime()))
                .toList();
     }
@@ -50,6 +54,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     public PageVO<BlogVO> select(BlogQueryDTO queryDTO) {
         Page<Blog> page = new PageDTO(queryDTO.getPageNo(), queryDTO.getPageSize(), null, null).toMpPageDefaultSortByCreateTimeDesc();
         this.page(page, new LambdaQueryWrapper<Blog>()
+                        .eq(Blog::getDeleted, 0)
                         .eq(queryDTO.getUserId() != null, Blog::getUserId, queryDTO.getUserId())
                         .like(!ObjectUtils.isEmpty(queryDTO.getTitle()), Blog::getTitle, queryDTO.getTitle())
                         .eq(queryDTO.getCreateTime() != null, Blog::getCreateTime, queryDTO.getCreateTime()));
@@ -85,12 +90,15 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     
     @Override
     public boolean deleteBlogById(Long blogId) {
-        return this.updateById(new Blog(blogId, null, null, null, null, LocalDateTime.now(), 1));
+        return checkAccessRole(blogId) &&
+               this.updateById(new Blog(blogId, null, null, null, null, LocalDateTime.now(), 1));
     }
     
     @Override
     public boolean editBlog(BlogEditDTO editDTO) {
-        return this.updateById(new Blog(editDTO.getId(), null, editDTO.getTitle(), editDTO.getContent(), null, LocalDateTime.now(), null));
+        Long blogId = editDTO.getId();
+        return checkAccessRole(blogId) &&
+               this.updateById(new Blog(blogId, null, editDTO.getTitle(), editDTO.getContent(), null, LocalDateTime.now(), null));
     }
     
     @Override
@@ -135,4 +143,37 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     private CommentVO convertCommentToVO(Object comment) {
         return null;  // TODO: 评论功能待完善
     }
+    
+    /**
+     * @see com.emiyaoj.service.service.impl.UserServiceImpl
+     */
+    private boolean checkAccessRole(Long blogId) {
+        if (blogId == null) return false;
+        
+        // 检查登录
+        final Long userId;
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserLogin userLogin = (UserLogin) authentication.getPrincipal();
+            userId = userLogin.getUser().getId();
+        } catch (Exception e) {
+            log.warn("用户未登录: {}", e.getMessage());
+            return false;
+        }
+        
+        // 先检查是不是管理员
+        boolean isManager = roleMapper
+                            .selectList(new LambdaQueryWrapper<Role>()  // 查用户所有角色
+                                        .in(Role::getId, userRoleMapper.selectRoleIdsByUserId(userId)))
+                            .stream()
+                            .filter(r -> r.getStatus() == 1)
+                            .anyMatch(r -> MANAGERS.contains(r.getRoleCode()));  // 匹配管理员
+        if (isManager) return true;
+        
+        // 如果不是管理员，再看看发表博客的用户是不是正在操作的用户
+        Blog blog = this.getById(blogId);
+        return blog.getUserId().equals(userId);
+    }
+    
+    private final static Set<String> MANAGERS = Set.of("ROLE_ADMIN", "ROLE_MANAGER");
 }

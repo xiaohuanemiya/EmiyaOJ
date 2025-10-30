@@ -42,11 +42,13 @@ public class UserBlogServiceImpl extends ServiceImpl<UserBlogMapper, UserBlog> i
     
     @Override
     public PageVO<BlogVO> selectUserBlogBlogs(UserBlogBlogsQueryDTO queryDTO) {
-        PageDTO pageDTO = new PageDTO(queryDTO.getPageNo(), queryDTO.getPageSize(), null, null);
-        Page<Blog> page = pageDTO.toMpPageDefaultSortByUpdateTimeDesc();
-        Page<Blog> blogPage = blogMapper.selectPage(page, new LambdaQueryWrapper<Blog>()
-                                                          .eq(Blog::getUserId, queryDTO.getUserId())
-                                                          .eq(Blog::getDeleted, 0));
+        Page<Blog> page = new PageDTO(queryDTO.getPageNo(), queryDTO.getPageSize(), null, null)  // 转化为DTO
+                          .toMpPageDefaultSortByUpdateTimeDesc();  // 转化为Page
+        // Page + 条件查
+        blogMapper.selectPage(page, new LambdaQueryWrapper<Blog>()
+                                    .eq(Blog::getUserId, queryDTO.getUserId())
+                                    .eq(Blog::getDeleted, 0));
+        // 包装为VO
         return PageVO.of(page, this::convertBlogToVO);
     }
     
