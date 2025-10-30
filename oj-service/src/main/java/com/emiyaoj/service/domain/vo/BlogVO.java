@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 
 /**
  * <h1>博客VO</h1>
@@ -24,7 +24,7 @@ public class BlogVO {
     
     private String content;
     
-    private Date createTime;
+    private LocalDateTime createTime;
     
-    private Date updateTime;
+    private LocalDateTime updateTime;
 }
