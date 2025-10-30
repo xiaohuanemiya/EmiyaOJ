@@ -78,13 +78,4 @@ public interface IPermissionService extends IService<Permission> {
      */
     List<PermissionVO> buildPermissionTree(List<PermissionVO> permissions);
 
-    /**
-     * 获取菜单权限树（用于前端路由）
-     */
-    List<PermissionVO> getMenuTree(Long userId);
-
-    /**
-     * 获取按钮权限列表
-     */
-    List<String> getButtonPermissions(Long userId);
 }

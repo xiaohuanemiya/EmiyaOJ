@@ -1,5 +1,6 @@
 package com.emiyaoj.service.domain.vo;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
@@ -12,13 +13,15 @@ import java.util.List;
 public class PermissionVO {
 
     /**
-     * 权限ID
+     * 权限ID - 序列化为字符串，避免前端JavaScript精度丢失
      */
+    @JSONField(serializeFeatures = com.alibaba.fastjson2.JSONWriter.Feature.WriteLongAsString)
     private Long id;
 
     /**
-     * 父权限ID
+     * 父权限ID - 序列化为字符串，避免前端JavaScript精度丢失
      */
+    @JSONField(serializeFeatures = com.alibaba.fastjson2.JSONWriter.Feature.WriteLongAsString)
     private Long parentId;
 
     /**

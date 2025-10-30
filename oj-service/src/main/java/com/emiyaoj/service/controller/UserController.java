@@ -35,7 +35,7 @@ public class UserController {
     @PostMapping("/page")
     @PreAuthorize("hasAuthority('USER.LIST')")
     public ResponseResult<PageVO<UserVO>> getUserPage(@Valid @RequestBody PageDTO pageDTO) {
-        PageVO<UserVO> page = userService.selectUserPage2(pageDTO);
+        PageVO<UserVO> page = userService.selectUserPage(pageDTO);
         return ResponseResult.success(page);
     }
 
