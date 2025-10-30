@@ -1,17 +1,22 @@
 package com.emiyaoj.service.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.emiyaoj.common.domain.PageDTO;
 import com.emiyaoj.common.domain.PageVO;
 import com.emiyaoj.service.domain.dto.UserBlogBlogsQueryDTO;
 import com.emiyaoj.service.domain.dto.UserBlogStarsQueryDTO;
+import com.emiyaoj.service.domain.pojo.Blog;
 import com.emiyaoj.service.domain.pojo.UserBlog;
-import com.emiyaoj.service.domain.vo.UserBlogBlogVO;
-import com.emiyaoj.service.domain.vo.UserBlogStarVO;
+import com.emiyaoj.service.domain.vo.BlogVO;
 import com.emiyaoj.service.domain.vo.UserBlogVO;
+import com.emiyaoj.service.mapper.BlogMapper;
 import com.emiyaoj.service.mapper.UserBlogMapper;
 import com.emiyaoj.service.service.IUserBlogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,24 +29,40 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class UserBlogServiceImpl extends ServiceImpl<UserBlogMapper, UserBlog> implements IUserBlogService {
+    private final BlogMapper blogMapper;
     
     @Override
     public UserBlogVO selectUserBlogById(Long id) {
-        return null;
+        UserBlog userBlog = this.getById(id);
+        if (userBlog == null) return null;
+        UserBlogVO userBlogVO = new UserBlogVO();
+        BeanUtils.copyProperties(userBlog, userBlogVO);
+        return userBlogVO;
     }
     
     @Override
-    public PageVO<UserBlogBlogVO> selectUserBlogBlogs(UserBlogBlogsQueryDTO queryDTO) {
-        return null;
+    public PageVO<BlogVO> selectUserBlogBlogs(UserBlogBlogsQueryDTO queryDTO) {
+        PageDTO pageDTO = new PageDTO(queryDTO.getPageNo(), queryDTO.getPageSize(), null, null);
+        Page<Blog> page = pageDTO.toMpPageDefaultSortByUpdateTimeDesc();
+        Page<Blog> blogPage = blogMapper.selectPage(page, new LambdaQueryWrapper<Blog>()
+                                                          .eq(Blog::getUserId, queryDTO.getUserId())
+                                                          .eq(Blog::getDeleted, 0));
+        return PageVO.of(page, this::convertBlogToVO);
     }
     
     @Override
-    public PageVO<UserBlogStarVO> selectUserBlogStars(UserBlogStarsQueryDTO queryDTO) {
-        return null;
+    public PageVO<BlogVO> selectUserBlogStars(UserBlogStarsQueryDTO queryDTO) {
+        return null;  // TODO: 待扩展
     }
     
     @Override
     public boolean starBlog(Long blogId) {
-        return false;
+        return false;  // TODO: 待扩展
+    }
+    
+    private BlogVO convertBlogToVO(Blog blog) {
+        BlogVO blogVO = new BlogVO();
+        BeanUtils.copyProperties(blog, blogVO);
+        return blogVO;
     }
 }
