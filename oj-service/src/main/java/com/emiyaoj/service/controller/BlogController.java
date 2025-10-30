@@ -81,15 +81,21 @@ public class BlogController {
     }
     
     @PostMapping("/user/{uid}/blogs")
-    public ResponseResult<PageVO<UserBlogBlogVO>> userBlogBlogs(@PathVariable Long uid, @RequestBody UserBlogBlogsQueryDTO blogsQueryDTO) {
-        PageVO<UserBlogBlogVO> pageVO = userBlogService.selectUserBlogBlogs(blogsQueryDTO);
+    public ResponseResult<PageVO<BlogVO>> userBlogBlogs(@PathVariable Long uid, @RequestBody UserBlogBlogsQueryDTO blogsQueryDTO) {
+        PageVO<BlogVO> pageVO = userBlogService.selectUserBlogBlogs(blogsQueryDTO);
         return pageVO != null ? ResponseResult.success(pageVO) : ResponseResult.fail("未找到该用户");
     }
     
     @PostMapping("/user/{uid}/stars")
-    public ResponseResult<PageVO<UserBlogStarVO>> userBlogStars(@PathVariable Long uid, @RequestBody UserBlogStarsQueryDTO starsQueryDTO) {
-        PageVO<UserBlogStarVO> pageVO = userBlogService.selectUserBlogStars(starsQueryDTO);
+    public ResponseResult<PageVO<BlogVO>> userBlogStars(@PathVariable Long uid, @RequestBody UserBlogStarsQueryDTO starsQueryDTO) {
+        PageVO<BlogVO> pageVO = userBlogService.selectUserBlogStars(starsQueryDTO);
         return pageVO != null ? ResponseResult.success(pageVO) : ResponseResult.fail("未找到该用户");
+    }
+    
+    @GetMapping("/tags")
+    public ResponseResult<List<BlogTagVO>> tags() {
+        List<BlogTagVO> vos = blogService.selectAllTags();
+        return ResponseResult.success(vos);
     }
     
     @PostMapping("/comments")

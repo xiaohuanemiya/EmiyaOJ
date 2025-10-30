@@ -4,10 +4,13 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 
 /**
  * <h1>博客表</h1>
@@ -16,6 +19,8 @@ import java.sql.Date;
  * @since 2025-10-29
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Accessors(chain = true)
 @TableName("blog")
 public class Blog {
@@ -34,11 +39,12 @@ public class Blog {
     private String content;
     
     @TableField("create_time")
-    private Date createTime;
+    private LocalDateTime createTime;
     
     @TableField("update_time")
-    private Date updateTime;
+    private LocalDateTime updateTime;
     
     @TableField("deleted")
+    @Schema(description = "0未删除，1删除")
     private Integer deleted;
 }

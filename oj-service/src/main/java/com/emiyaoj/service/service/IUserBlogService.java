@@ -5,8 +5,7 @@ import com.emiyaoj.common.domain.PageVO;
 import com.emiyaoj.service.domain.dto.UserBlogBlogsQueryDTO;
 import com.emiyaoj.service.domain.dto.UserBlogStarsQueryDTO;
 import com.emiyaoj.service.domain.pojo.UserBlog;
-import com.emiyaoj.service.domain.vo.UserBlogBlogVO;
-import com.emiyaoj.service.domain.vo.UserBlogStarVO;
+import com.emiyaoj.service.domain.vo.BlogVO;
 import com.emiyaoj.service.domain.vo.UserBlogVO;
 
 /**
@@ -18,9 +17,9 @@ import com.emiyaoj.service.domain.vo.UserBlogVO;
 public interface IUserBlogService extends IService<UserBlog> {
     UserBlogVO selectUserBlogById(Long id);
     
-    PageVO<UserBlogBlogVO> selectUserBlogBlogs(UserBlogBlogsQueryDTO queryDTO);
+    PageVO<BlogVO> selectUserBlogBlogs(UserBlogBlogsQueryDTO queryDTO);
     
-    PageVO<UserBlogStarVO> selectUserBlogStars(UserBlogStarsQueryDTO queryDTO);
+    PageVO<BlogVO> selectUserBlogStars(UserBlogStarsQueryDTO queryDTO);
     
     boolean starBlog(Long blogId);
     

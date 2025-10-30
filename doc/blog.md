@@ -18,6 +18,7 @@
 | `/blog/user/{uid}`       | GET      | 查询指定作者发起的所有博客，暂时不用                         |
 | `/blog/user/{uid}/blogs` | POST     | **分页**按**给定信息**查询指定作者发起的博客                 |
 | `/blog/user/{uid}/star`  | POST     | 分页查用户收藏博客（**暂时不支持**）                         |
+| `/blog/tags`             | GET      | 获取所有标签。因为由管理员规定，所以暂时不考虑分页           |
 | `/blog/comments/{cid}`   | GET      | 获取指定评论（**不支持**）                                   |
 | `/blog/comments/{cid}`   | PUT      | 修改已发表评论（**不支持**）                                 |
 | `/blog/comments/{cid}`   | DELETE   | 删除评论，仅对**管理员**和**话题创建者**开放权限；<br />可以考虑使用AI智能检测评论 |
@@ -33,6 +34,7 @@
  |--/user/{uid}  # 查用户
  |   |--/blogs  # 分页查用户发表博客
  |   |--/star  # 分页查用户收藏博客
+ |--/tags  # 获取所有标签
  |--/comments/{cid}  # 评论操作，偏系统管理方向
 ```
 

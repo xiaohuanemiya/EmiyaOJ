@@ -5,6 +5,7 @@ import com.emiyaoj.common.domain.PageDTO;
 import com.emiyaoj.common.domain.PageVO;
 import com.emiyaoj.service.domain.dto.*;
 import com.emiyaoj.service.domain.pojo.Blog;
+import com.emiyaoj.service.domain.vo.BlogTagVO;
 import com.emiyaoj.service.domain.vo.BlogVO;
 import com.emiyaoj.service.domain.vo.CommentVO;
 
@@ -19,15 +20,17 @@ import java.util.List;
 public interface IBlogService extends IService<Blog> {
     List<BlogVO> selectAll();
     
-    PageVO<BlogVO> select(BlogQueryDTO blogQueryDTO);
+    PageVO<BlogVO> select(BlogQueryDTO queryDTO);
     
-    boolean saveBlog(BlogSaveDTO blogSaveDTO);
+    boolean saveBlog(BlogSaveDTO saveDTO);
     
     BlogVO selectBlogById(Long blogId);
     
     boolean deleteBlogById(Long blogId);
     
-    boolean editBlog(BlogEditDTO blogEditDTO);
+    boolean editBlog(BlogEditDTO editDTO);
+    
+    List<BlogTagVO> selectAllTags();
     
     PageVO<CommentVO> selectCommentPage(Long blogId, PageDTO pageDTO);
     
