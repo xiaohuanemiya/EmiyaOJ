@@ -12,7 +12,6 @@ import com.emiyaoj.service.domain.vo.BlogVO;
 import com.emiyaoj.service.domain.vo.CommentVO;
 import com.emiyaoj.service.mapper.*;
 import com.emiyaoj.service.service.IBlogService;
-import com.emiyaoj.service.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -22,9 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -130,7 +127,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     
     @Override
     public boolean deleteComment(Long commentId) {
-        return false;  // TODO: 评论功能待完善
+        return false;  // TODO: [博客模块-评论功能] 评论功能待完善
     }
     
     private BlogVO convertBlogToVO(Blog blog) {
@@ -139,15 +136,15 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         return blogVO;
     }
     
-    // TODO: 评论功能待补充
+    // TODO: [博客模块-评论功能] 评论功能待补充
     private CommentVO convertCommentToVO(Object comment) {
-        return null;  // TODO: 评论功能待完善
+        return null;
     }
     
     /**
      * @see com.emiyaoj.service.service.impl.UserServiceImpl
      */
-    private boolean checkAccessRole(Long blogId) {
+    private boolean checkAccessRole(Long blogId) {  // TODO: [博客模块] 鉴权功能待优化
         if (blogId == null) return false;
         
         // 检查登录

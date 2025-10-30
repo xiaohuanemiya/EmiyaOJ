@@ -140,6 +140,7 @@ public class BlogController {
     @PostMapping("/user/{uid}/stars")
     @PreAuthorize("hasAuthority('BLOG.LIST')")
     public ResponseResult<PageVO<BlogVO>> userBlogStars(@PathVariable Long uid, @RequestBody UserBlogStarsQueryDTO starsQueryDTO) {
+        starsQueryDTO.setUserId(uid);
         PageVO<BlogVO> pageVO = userBlogService.selectUserBlogStars(starsQueryDTO);
         return pageVO != null ? ResponseResult.success(pageVO) : ResponseResult.fail("未找到该用户");
     }

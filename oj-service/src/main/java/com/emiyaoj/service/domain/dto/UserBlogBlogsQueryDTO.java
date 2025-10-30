@@ -1,5 +1,6 @@
 package com.emiyaoj.service.domain.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -10,9 +11,15 @@ import lombok.Data;
  */
 @Data
 public class UserBlogBlogsQueryDTO {
+    @NotNull
     private Long userId;
     
+    /**
+     * @see com.emiyaoj.common.domain.PageDTO
+     */
+    @NotNull
     private Integer pageNo;
     
+    @NotNull
     private Integer pageSize;
 }
