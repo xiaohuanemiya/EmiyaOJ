@@ -149,9 +149,10 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         
         // 检查登录
         final Long userId;
+        final UserLogin userLogin;
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            UserLogin userLogin = (UserLogin) authentication.getPrincipal();
+            userLogin = (UserLogin) authentication.getPrincipal();
             userId = userLogin.getUser().getId();
         } catch (Exception e) {
             log.warn("用户未登录: {}", e.getMessage());
@@ -159,12 +160,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         }
         
         // 先检查是不是管理员
-        boolean isManager = roleMapper
-                            .selectList(new LambdaQueryWrapper<Role>()  // 查用户所有角色
-                                        .in(Role::getId, userRoleMapper.selectRoleIdsByUserId(userId)))
-                            .stream()
-                            .filter(r -> r.getStatus() == 1)
-                            .anyMatch(r -> MANAGERS.contains(r.getRoleCode()));  // 匹配管理员
+        List<String> roles = userLogin.getRoles();
+        boolean isManager = roles.stream().anyMatch(MANAGERS::contains);
         if (isManager) return true;
         
         // 如果不是管理员，再看看发表博客的用户是不是正在操作的用户
