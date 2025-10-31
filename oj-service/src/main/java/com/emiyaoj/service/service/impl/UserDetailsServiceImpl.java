@@ -5,7 +5,9 @@ import com.emiyaoj.common.utils.ObjectUtil;
 import com.emiyaoj.service.domain.pojo.User;
 import com.emiyaoj.service.domain.pojo.UserLogin;
 import com.emiyaoj.service.mapper.PermissionMapper;
+import com.emiyaoj.service.mapper.RoleMapper;
 import com.emiyaoj.service.mapper.UserMapper;
+import com.emiyaoj.service.mapper.UserRoleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +22,8 @@ import java.util.List;
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserMapper userMapper;
+    private final UserRoleMapper userRoleMapper;
+    private final RoleMapper roleMapper;
     private final PermissionMapper permissionMapper;
 
     /**
@@ -40,12 +44,17 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException("");
         }
         // 2.赋权操作 查询数据库
-        List<String> list = permissionMapper.findPermissionCodesByUserId(user.getId());
+        Long userId = user.getId();
+        List<String> list = permissionMapper.findPermissionCodesByUserId(userId);
 
         for (String s : list) {
             System.out.println(s);
         }
-
-        return new UserLogin(user, list);
+        
+        // （新增）3. 记录角色权限
+        List<Long> roleIds = userRoleMapper.selectRoleIdsByUserId(userId);
+        List<String> roleCodes = roleMapper.selectRoleCodesByIds(roleIds);
+        
+        return new UserLogin(user, list, roleCodes);
     }
 }
