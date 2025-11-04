@@ -3,7 +3,9 @@ package com.emiyaoj.service.domain.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -14,6 +16,8 @@ import java.util.List;
  * @since 2025/10/29
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class BlogSaveDTO {
     @NotNull
     private Long userId;

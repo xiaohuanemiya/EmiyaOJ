@@ -2,7 +2,9 @@ package com.emiyaoj.service.domain.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +15,8 @@ import java.time.LocalDateTime;
  * @since 2025/10/29
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class BlogQueryDTO {
     @NotNull
     private Long userId;
