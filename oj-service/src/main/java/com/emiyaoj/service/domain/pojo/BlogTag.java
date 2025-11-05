@@ -26,7 +26,7 @@ public class BlogTag {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
     
-    @TableField("name")
+    @TableField("tag")
     private String name;
     
     @TableField("`desc`")

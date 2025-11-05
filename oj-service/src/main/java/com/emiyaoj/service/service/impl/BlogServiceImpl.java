@@ -22,6 +22,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -50,11 +51,17 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     @Override
     public PageVO<BlogVO> select(BlogQueryDTO queryDTO) {
         Page<Blog> page = new PageDTO(queryDTO.getPageNo(), queryDTO.getPageSize(), null, null).toMpPageDefaultSortByCreateTimeDesc();
-        this.page(page, new LambdaQueryWrapper<Blog>()
-                        .eq(Blog::getDeleted, 0)
-                        .eq(queryDTO.getUserId() != null, Blog::getUserId, queryDTO.getUserId())
-                        .like(!ObjectUtils.isEmpty(queryDTO.getTitle()), Blog::getTitle, queryDTO.getTitle())
-                        .eq(queryDTO.getCreateTime() != null, Blog::getCreateTime, queryDTO.getCreateTime()));
+        LambdaQueryWrapper<Blog> wrapper = new LambdaQueryWrapper<Blog>()
+                                        .eq(Blog::getDeleted, 0)  // 未被删除
+                                        .eq(queryDTO.getUserId() != null, Blog::getUserId, queryDTO.getUserId())  // 指定用户
+                                        .like(!ObjectUtils.isEmpty(queryDTO.getTitle()), Blog::getTitle, queryDTO.getTitle());  // 模糊查询
+        // 查当天
+        Optional.ofNullable(queryDTO.getCreateTime()).ifPresent(t -> {
+            LocalDateTime startOfDay = t.toLocalDate().atStartOfDay();
+            LocalDateTime endOfDay = startOfDay.plusDays(1);
+            wrapper.between(Blog::getCreateTime, startOfDay, endOfDay);
+        });
+        this.page(page, wrapper);
         return PageVO.of(page, this::convertBlogToVO);
     }
     
@@ -95,7 +102,14 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     public boolean editBlog(BlogEditDTO editDTO) {
         Long blogId = editDTO.getId();
         return checkAccessRole(blogId) &&
-               this.updateById(new Blog(blogId, null, editDTO.getTitle(), editDTO.getContent(), null, LocalDateTime.now(), null));
+               this.updateById(new Blog(
+               blogId, 
+               null,
+               editDTO.getTitle(), 
+               editDTO.getContent(), 
+               null, 
+               LocalDateTime.now(), 
+               null));
     }
     
     @Override
@@ -131,6 +145,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     }
     
     private BlogVO convertBlogToVO(Blog blog) {
+        if (blog == null) return null;
         BlogVO blogVO = new BlogVO();
         BeanUtils.copyProperties(blog, blogVO);
         return blogVO;

@@ -3,7 +3,9 @@ package com.emiyaoj.service.domain.pojo;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
@@ -14,10 +16,17 @@ import lombok.experimental.Accessors;
  * @since 2025-10-29
  */
 @Data
+//@AllArgsConstructor
+@NoArgsConstructor
 @Accessors(chain = true)
 @TableName("user_blog")
 public class UserBlog {
     private static final long serialVersionUID = 1L;
+    
+    // 当扩展属性时保留此构造方法
+    public UserBlog(Long userId) {
+        this.userId = userId;
+    }
     
     @TableId(value = "user_id", type = IdType.AUTO)
     private Long userId;
