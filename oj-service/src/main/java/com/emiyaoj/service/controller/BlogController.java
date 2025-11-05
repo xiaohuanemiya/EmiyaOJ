@@ -57,7 +57,7 @@ public class BlogController {
     @PreAuthorize("hasAuthority('BLOG.LIST')")
     public ResponseResult<BlogVO> getBlog(@PathVariable Long bid) {
         BlogVO vo = blogService.selectBlogById(bid);
-        return vo != null ? ResponseResult.success(vo) : ResponseResult.fail("未找到该博客");
+        return vo != null ? ResponseResult.success(vo) : ResponseResult.fail(404, "未找到该博客");
     }
     
     /**
@@ -77,6 +77,8 @@ public class BlogController {
     @PreAuthorize("hasAuthority('BLOG.EDIT')")
     public ResponseResult<?> editBlog(@PathVariable Long bid, @RequestBody BlogEditDTO blogEditDTO) {
         blogEditDTO.setId(bid);
+        if (blogEditDTO.getTitle().isBlank()) blogEditDTO.setTitle(null);
+        if (blogEditDTO.getContent().isBlank()) blogEditDTO.setContent(null);
         boolean success = blogService.editBlog(blogEditDTO);
         return success ? ResponseResult.success() : ResponseResult.fail("修改失败");
     }
@@ -84,17 +86,19 @@ public class BlogController {
     /**
      * 查评论
      */
+    @Deprecated
     @GetMapping("/{bid}/comments")
     @PreAuthorize("hasAuthority('COMMENT.LIST')")
     public ResponseResult<PageVO<CommentVO>> selectCommentPage(@PathVariable Long bid,
                                                                @RequestBody PageDTO pageDTO) {
         PageVO<CommentVO> vos = blogService.selectCommentPage(bid, pageDTO);
-        return vos != null ? ResponseResult.success(vos) : ResponseResult.fail("未找到该博客");
+        return vos != null ? ResponseResult.success(vos) : ResponseResult.fail(404, "未找到该博客");
     }
     
     /**
      * 发表评论
      */
+    @Deprecated
     @PostMapping("/{bid}/comments")
     @PreAuthorize("hasAuthority('COMMENT.ADD')")
     public ResponseResult<?> addComment(@PathVariable Long bid, @RequestBody BlogCommentSaveDTO blogCommentSaveDTO) {
@@ -105,6 +109,7 @@ public class BlogController {
     /**
      * 收藏博客
      */
+    @Deprecated
     @PostMapping("/{bid}/star")
     @PreAuthorize("hasAuthority('BLOG.STAR')")
     public ResponseResult<?> starBlog(@PathVariable Long bid) {
@@ -120,7 +125,7 @@ public class BlogController {
     @PreAuthorize("hasAuthority('USER.LIST')")
     public ResponseResult<UserBlogVO> userBlog(@PathVariable Long uid) {
         UserBlogVO vo = userBlogService.selectUserBlogById(uid);
-        return vo != null ? ResponseResult.success(vo) : ResponseResult.fail("未找到该用户");
+        return vo != null ? ResponseResult.success(vo) : ResponseResult.fail(404, "未找到该用户");
     }
     
     /**
@@ -131,18 +136,19 @@ public class BlogController {
     public ResponseResult<PageVO<BlogVO>> userBlogBlogs(@PathVariable Long uid, @RequestBody UserBlogBlogsQueryDTO blogsQueryDTO) {
         blogsQueryDTO.setUserId(uid);
         PageVO<BlogVO> pageVO = userBlogService.selectUserBlogBlogs(blogsQueryDTO);
-        return pageVO != null ? ResponseResult.success(pageVO) : ResponseResult.fail("未找到该用户");
+        return pageVO != null ? ResponseResult.success(pageVO) : ResponseResult.fail(404, "未找到该用户");
     }
     
     /**
      * 分页条件查用户收藏的博客
      */
+    @Deprecated
     @PostMapping("/user/{uid}/stars")
     @PreAuthorize("hasAuthority('BLOG.LIST')")
     public ResponseResult<PageVO<BlogVO>> userBlogStars(@PathVariable Long uid, @RequestBody UserBlogStarsQueryDTO starsQueryDTO) {
         starsQueryDTO.setUserId(uid);
         PageVO<BlogVO> pageVO = userBlogService.selectUserBlogStars(starsQueryDTO);
-        return pageVO != null ? ResponseResult.success(pageVO) : ResponseResult.fail("未找到该用户");
+        return pageVO != null ? ResponseResult.success(pageVO) : ResponseResult.fail(404, "未找到该用户");
     }
     
     /**
@@ -163,12 +169,13 @@ public class BlogController {
     @PreAuthorize("hasAuthority('COMMENT.LIST')")
     public ResponseResult<List<CommentVO>> queryComments(@RequestBody CommentQueryDTO queryDTO) {
         List<CommentVO> comments = blogService.selectComment(queryDTO);
-        return comments != null ? ResponseResult.success(comments) : ResponseResult.fail("未找到该用户");
+        return comments != null ? ResponseResult.success(comments) : ResponseResult.fail(404, "未找到该用户");
     }
     
     /**
      * 获取指定评论（待修改）
      */
+    @Deprecated
     @GetMapping("/comments/{cid}")
     @PreAuthorize("hasAuthority('COMMENT.LIST')")
     public ResponseResult<CommentVO> getComment(@PathVariable Long cid) {
@@ -189,6 +196,7 @@ public class BlogController {
     /**
      * 删除评论（待完善）
      */
+    @Deprecated
     @DeleteMapping("/comments/{cid}")
     @PreAuthorize("hasAuthority('COMMENT.DELETE')")
     public ResponseResult<?> deleteComment(@PathVariable Long cid) {
