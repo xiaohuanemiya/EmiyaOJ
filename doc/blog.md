@@ -44,6 +44,31 @@
 
 ## 数据库设计
 
+### 关系设计
+
+根据已有需求设计出以下实体
+
+- A：原数据库用户
+- B：博客模块用户信息
+- C：博客标签
+- D：发布的博客
+- E：收藏的博客
+- F：评论
+
+关系如下（经过简化）：
+
+```
+A -> B  1:1
+B -> D  1:n
+B -> E  n:m
+B -> F  1:n
+C -> D  n:m
+```
+
+
+
+### 数据库初始化代码
+
 ```mysql
 use `emiya-oj`;
 
@@ -119,9 +144,12 @@ user  # 用户
 
 ### user_blog
 
-- `user_id`：外键+主键
+- `user_id`：主键
+- `blog_count`：发布博客数量
+- `star_count`：收藏博客数量
+- `create_time`：博客模块用户初始化时间点
 
-其他的留着扩展
+其他的留着扩展。每个博客模块用户仅在创建时检查user表中是否存在对应用户
 
 ### blog
 
@@ -131,9 +159,9 @@ user  # 用户
 - `content`：内容
 - `create_time`：首次创建时间
 - `update_time`：最后更新时间
-- `deleted`：删除标记
+- `deleted`：删除标记（删除时需要修改`blog_tag_association`和`user_blog`）
 
-评论相关的留着扩展
+评论相关的留着扩展。数据库清理已删除内容时一般从此表开始下手
 
 ### blog_tag
 
@@ -143,9 +171,58 @@ user  # 用户
 
 ### blog_tag_association
 
-- `id`
-- `blog_id`
-- `tag_id`
+- `id`：主键
+- `blog_id`：关联博客id
+- `tag_id`：关联标签id
+- `create_time`：关联时间
+
+需要防止`(blog_id, tag_id)`重复
+
+### blog_star
+
+- `id`：主键
+- `user_id`：用户id
+- `blog_id`：收藏博客id
+- `create_time`：收藏时间
+- `deleted`：当博客删除时需要标记此状态方便前端显示
+
+### blog_comment
+
+- `id`：主键
+- `blog_id`：被评论的博客
+- `user_id`：评论用户
+- `content`：评论内容
+- `create_time`：评论时间
+- `update_time`：评论修改时间（一般来说不太需要，至少前端不需要知道，这是留给后端管理员操作的）
+- `deleted`：是否删除评论
+
+### blog_picture
+
+- `url`：主键，传给前端时可以包装成html标签
+- `deleted`：被动标记。当博客删除时标记此状态，以便后续删除图片
+
+如果需要主动部署服务器来存储用户上传的图片，需要用此数据表作为对照以方便删除过时的图片
+
+
+
+### 注意事项
+
+需要删除时，先调用以下sql代码
+
+```mysql
+
+```
+
+然后根据`blog_picture`表中`deleted`被标记的内容删除托管的图片
+
+最后清理`blog_picture`不需要的内容
+
+```mysql
+using emiya-oj;
+delete from blog where deleted=1;
+```
+
+
 
 
 
@@ -154,4 +231,8 @@ user  # 用户
 - 话题讨论夹带图片信息，不好以纯文字存到数据库
 
   解决方案：图片上传特殊服务器，以URL的形式存储。minio
+  
+  具体形式：前端先上传文件，后端返回url，前端显示出html表示的图片。之后评论完成后后端以html的形式存储
+  
+- 评论时考虑markdown渲染（？）
 
