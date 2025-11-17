@@ -2,6 +2,8 @@ package com.emiyaoj.service.domain.dto;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 /**
  * <h1>查询用户收藏博客DTO</h1>
  *
@@ -12,5 +14,7 @@ import lombok.Data;
 public class UserBlogStarsQueryDTO {
     private Long userId;
     
-    // TODO: [博客模块] 收藏博客功能待扩展
+    private Integer pageNo;
+    
+    private Integer pageSize;
 }

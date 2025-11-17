@@ -1,27 +1,32 @@
 package com.emiyaoj.service.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.emiyaoj.common.domain.PageDTO;
 import com.emiyaoj.common.domain.PageVO;
 import com.emiyaoj.service.domain.dto.UserBlogBlogsQueryDTO;
 import com.emiyaoj.service.domain.dto.UserBlogStarsQueryDTO;
-import com.emiyaoj.service.domain.pojo.Blog;
-import com.emiyaoj.service.domain.pojo.User;
-import com.emiyaoj.service.domain.pojo.UserBlog;
+import com.emiyaoj.service.domain.pojo.*;
 import com.emiyaoj.service.domain.vo.BlogVO;
 import com.emiyaoj.service.domain.vo.UserBlogVO;
 import com.emiyaoj.service.mapper.BlogMapper;
+import com.emiyaoj.service.mapper.BlogStarMapper;
 import com.emiyaoj.service.mapper.UserBlogMapper;
 import com.emiyaoj.service.mapper.UserMapper;
 import com.emiyaoj.service.service.IUserBlogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 /**
  * <h1>用户博客服务实现类</h1>
@@ -34,6 +39,7 @@ import java.io.Serializable;
 @Slf4j
 public class UserBlogServiceImpl extends ServiceImpl<UserBlogMapper, UserBlog> implements IUserBlogService {
     private final BlogMapper blogMapper;
+    private final BlogStarMapper blogStarMapper;
     private final UserMapper userMapper;
     
     @Override
@@ -59,15 +65,31 @@ public class UserBlogServiceImpl extends ServiceImpl<UserBlogMapper, UserBlog> i
     
     @Override
     public PageVO<BlogVO> selectUserBlogStars(UserBlogStarsQueryDTO queryDTO) {
-        return null;  // TODO: 待扩展
+        Page<BlogStar> page = new PageDTO(queryDTO.getPageNo(), queryDTO.getPageSize(), null, null)  // 转化为DTO
+                              .toMpPageDefaultSortByUpdateTimeDesc();  // 转化为Page
+        // Page + 条件查
+        blogStarMapper.selectPage(page, new LambdaQueryWrapper<BlogStar>()
+                                        .eq(BlogStar::getUserId, queryDTO.getUserId()));
+
+        List<Long> blogIds = page.getRecords().stream().map(BlogStar::getBlogId).toList();
+        List<Blog> blogs = blogMapper.selectByIds(blogIds);
+        List<BlogVO> blogVOs = blogs.stream().map(this::convertBlogToVO).toList();
+        
+        // 重新包装
+        PageVO<BlogVO> pageVO = new PageVO<>((long) blogVOs.size(), (long) queryDTO.getPageNo(), blogVOs);
+        return pageVO;
     }
     
     @Override
     public boolean starBlog(Long blogId) {
-        return false;  // TODO: 待扩展
+        Long userId = getUserId();
+        BlogStar blogStar = new BlogStar(null, userId, blogId, LocalDateTime.now(), 0);
+        int i = blogStarMapper.insert(blogStar);
+        return i == 1;
     }
     
     private BlogVO convertBlogToVO(Blog blog) {
+        if (blog == null) return null;
         BlogVO blogVO = new BlogVO();
         BeanUtils.copyProperties(blog, blogVO);
         return blogVO;
@@ -87,8 +109,64 @@ public class UserBlogServiceImpl extends ServiceImpl<UserBlogMapper, UserBlog> i
         User user = userMapper.selectById(id);
         if (user == null || user.getDeleted() == 1) return null;
         // TODO: 改进生成博客模块用户信息的逻辑
-        UserBlog entity = new UserBlog(id);
+        UserBlog entity = new UserBlog(id, user.getUsername(), user.getNickname());
         this.save(entity);
         return entity;
     }
+    
+    // 保留方法，用于清除用户已注销（记录仍存在于user表）的博客模块用户数据
+    void clearDeletedUsers() {
+        List<Long> deletedIds = userMapper
+                                .selectList(new LambdaQueryWrapper<User>().eq(User::getDeleted, 1))
+                                .stream()
+                                .map(User::getId)
+                                .toList();
+        
+        this.remove(new LambdaQueryWrapper<UserBlog>().in(UserBlog::getUserId, deletedIds));
+    }
+    
+    // 一坨
+    private boolean checkAccessRole(Long blogId) {  // TODO: [博客模块] 鉴权功能待优化
+        if (isTestEnvironment()) return true;
+        
+        if (blogId == null) return false;
+        
+        // 检查登录
+        final Long userId;
+        final UserLogin userLogin;
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            userLogin = (UserLogin) authentication.getPrincipal();
+            userId = userLogin.getUser().getId();
+        } catch (Exception e) {
+            log.warn("用户未登录: {}", e.getMessage());
+            return false;
+        }
+        
+        // 先检查是不是管理员
+        List<String> roles = userLogin.getRoles();
+        boolean isManager = roles.stream().anyMatch(MANAGERS::contains);
+        if (isManager) return true;
+        
+        // 如果不是管理员，再看看发表博客的用户是不是正在操作的用户
+        UserBlog blog = this.getById(blogId);
+        return blog.getUserId().equals(userId);
+    }
+    
+    private Long getUserId() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            return ((UserLogin) authentication.getPrincipal()).getUser().getId();
+        } catch (Exception e) {
+            log.warn("用户未登录: {}", e.getMessage());
+            return null;
+        }
+    }
+    
+    // 用于测试类继承
+    protected boolean isTestEnvironment() {
+        return false;
+    }
+    
+    private final static Set<String> MANAGERS = Set.of("ROLE_ADMIN", "ROLE_MANAGER");
 }

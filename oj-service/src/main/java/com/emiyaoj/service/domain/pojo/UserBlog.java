@@ -1,6 +1,7 @@
 package com.emiyaoj.service.domain.pojo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
@@ -16,8 +17,8 @@ import lombok.experimental.Accessors;
  * @since 2025-10-29
  */
 @Data
-//@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Accessors(chain = true)
 @TableName("user_blog")
 public class UserBlog {
@@ -30,6 +31,12 @@ public class UserBlog {
     
     @TableId(value = "user_id", type = IdType.AUTO)
     private Long userId;
+    
+    @TableField("username")
+    private String username;
+    
+    @TableField("nickname")
+    private String nickname;
     
     // TODO: 其他属性待扩展
 }

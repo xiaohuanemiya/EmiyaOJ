@@ -86,7 +86,6 @@ public class BlogController {
     /**
      * 查评论
      */
-    @Deprecated
     @GetMapping("/{bid}/comments")
     @PreAuthorize("hasAuthority('COMMENT.LIST')")
     public ResponseResult<PageVO<CommentVO>> selectCommentPage(@PathVariable Long bid,
@@ -98,7 +97,6 @@ public class BlogController {
     /**
      * 发表评论
      */
-    @Deprecated
     @PostMapping("/{bid}/comments")
     @PreAuthorize("hasAuthority('COMMENT.ADD')")
     public ResponseResult<?> addComment(@PathVariable Long bid, @RequestBody BlogCommentSaveDTO blogCommentSaveDTO) {
@@ -107,9 +105,8 @@ public class BlogController {
     }
     
     /**
-     * 收藏博客
+     * 用户收藏博客
      */
-    @Deprecated
     @PostMapping("/{bid}/star")
     @PreAuthorize("hasAuthority('BLOG.STAR')")
     public ResponseResult<?> starBlog(@PathVariable Long bid) {
@@ -164,7 +161,6 @@ public class BlogController {
     /**
      * 查评论（待修改）
      */
-    @Deprecated
     @PostMapping("/comments")
     @PreAuthorize("hasAuthority('COMMENT.LIST')")
     public ResponseResult<List<CommentVO>> queryComments(@RequestBody CommentQueryDTO queryDTO) {
@@ -175,7 +171,6 @@ public class BlogController {
     /**
      * 获取指定评论（待修改）
      */
-    @Deprecated
     @GetMapping("/comments/{cid}")
     @PreAuthorize("hasAuthority('COMMENT.LIST')")
     public ResponseResult<CommentVO> getComment(@PathVariable Long cid) {

@@ -37,6 +37,9 @@ import java.util.Set;
 public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IBlogService {
     private final BlogTagMapper blogTagMapper;
     private final BlogTagAssociationMapper blogTagAssociationMapper;
+    private final BlogCommentMapper blogCommentMapper;
+    private final BlogPictureMapper blogPictureMapper;
+    private final UserBlogMapper userBlogMapper;
     private final UserRoleMapper userRoleMapper;
     private final RoleMapper roleMapper;
     
@@ -122,22 +125,41 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     
     @Override
     public PageVO<CommentVO> selectCommentPage(Long blogId, PageDTO pageDTO) {
-        return null;  // TODO: 评论功能待完善
+        Page<BlogComment> page = new PageDTO(pageDTO.getPageNo(), pageDTO.getPageSize(), null, null).toMpPageDefaultSortByCreateTimeDesc();
+        LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<BlogComment>()
+                                                  .eq(BlogComment::getBlogId, blogId)
+                                                  .eq(BlogComment::getDeleted, 0);
+        blogCommentMapper.selectPage(page, wrapper);
+        
+        // 查用户名和昵称
+//        List<Long> userIds = page.getRecords().stream().map(BlogComment::getUserId).toList();
+//        List<UserBlog> userBlogs = userBlogMapper.selectByIds(userIds);
+        
+        return PageVO.of(page, this::convertCommentToVO);
     }
     
     @Override
     public CommentVO selectCommentById(Long commentId) {
-        return null;  // TODO: 评论功能待完善
+        return convertCommentToVO(blogCommentMapper.selectById(commentId));
     }
     
     @Override
     public List<CommentVO> selectComment(CommentQueryDTO queryDTO) {
-        return List.of();  // TODO: 评论功能待完善
+        LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<BlogComment>()
+                                                  .eq(BlogComment::getDeleted, 0)
+                                                  .eq(queryDTO.getBlogId() != null, BlogComment::getBlogId, queryDTO.getBlogId())
+                                                  .eq(queryDTO.getUserId() != null, BlogComment::getUserId, queryDTO.getUserId())
+                                                  .ge(queryDTO.getFromDay() != null, BlogComment::getCreateTime, queryDTO.getFromDay())
+                                                  .le(queryDTO.getToDay() != null, BlogComment::getCreateTime, queryDTO.getToDay());
+        List<BlogComment> blogComments = blogCommentMapper.selectList(wrapper);
+        return blogComments.stream().map(this::convertCommentToVO).toList();
     }
     
     @Override
     public boolean saveComment(Long blogId, BlogCommentSaveDTO blogCommentSaveDTO) {
-        return false;  // TODO: 评论功能待完善
+        BlogComment blogComment = new BlogComment(null, blogId, blogCommentSaveDTO.getUserId(), blogCommentSaveDTO.getContent(), LocalDateTime.now(), LocalDateTime.now(), 0);
+        int i = blogCommentMapper.insert(blogComment);
+        return i == 1;
     }
     
     @Override
@@ -152,9 +174,16 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         return blogVO;
     }
     
-    // TODO: [博客模块-评论功能] 评论功能待补充
-    private CommentVO convertCommentToVO(Object comment) {
-        return null;
+    private CommentVO convertCommentToVO(BlogComment bc) {
+        if (bc == null) return null;
+        CommentVO commentVO = new CommentVO();
+        BeanUtils.copyProperties(bc, commentVO);
+        
+        UserBlog ub = userBlogMapper.selectById(bc.getUserId());  // TODO: 待优化
+        commentVO.setUsername(ub.getUsername());
+        commentVO.setNickname(ub.getNickname());
+        
+        return commentVO;
     }
     
     /**
@@ -187,6 +216,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         return blog.getUserId().equals(userId);
     }
     
+    // 用于测试类继承
     protected boolean isTestEnvironment() {
         return false;
     }
