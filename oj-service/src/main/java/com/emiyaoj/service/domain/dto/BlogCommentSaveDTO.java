@@ -10,5 +10,7 @@ import lombok.Data;
  */
 @Data
 public class BlogCommentSaveDTO {
-    // TODO: [博客模块-评论功能] 发表评论DTO待完善
+    private Long userId;
+    
+    private String content;
 }

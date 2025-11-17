@@ -2,7 +2,9 @@ use `emiya-oj`;
 
 create table if not exists user_blog
 (
-    user_id bigint not null primary key
+    user_id  bigint      not null primary key,
+    username varchar(50) not null,
+    nickname varchar(50) not null
 ) engine = InnoDB
   default charset = utf8mb4
   collate = utf8mb4_general_ci;
