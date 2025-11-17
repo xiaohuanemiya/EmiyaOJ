@@ -97,7 +97,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     
     @Override
     public boolean deleteBlogById(Long blogId) {
-        if (!checkAccessRole(blogId)) return false;
+        if (checkAccessibleOperation(blogId, "ROLE_MANAGER", "ROLE_ADMIN") == null) return false;
         blogTagAssociationMapper.delete(new LambdaQueryWrapper<BlogTagAssociation>().eq(BlogTagAssociation::getBlogId, blogId));
         return this.updateById(new Blog(blogId, null, null, null, null, LocalDateTime.now(), 1));
     }
@@ -105,7 +105,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     @Override
     public boolean editBlog(BlogEditDTO editDTO) {
         Long blogId = editDTO.getId();
-        return checkAccessRole(blogId) &&
+        return checkAccessibleOperation(blogId, "ROLE_MANAGER", "ROLE_ADMIN") != null &&
                this.updateById(new Blog(
                blogId, 
                null,
@@ -189,10 +189,46 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     /**
      * @see com.emiyaoj.service.service.impl.UserServiceImpl
      */
-    private boolean checkAccessRole(Long blogId) {  // TODO: [博客模块] 鉴权功能待优化
-        if (isTestEnvironment()) return true;
-        
-        if (blogId == null) return false;
+//    private boolean checkAccessRole(Long blogId) {  // TODO: [博客模块] 鉴权功能待优化
+//        if (isTestEnvironment()) return true;
+//        
+//        if (blogId == null) return false;
+//        
+//        // 检查登录
+//        final Long userId;
+//        final UserLogin userLogin;
+//        try {
+//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//            userLogin = (UserLogin) authentication.getPrincipal();
+//            userId = userLogin.getUser().getId();
+//        } catch (Exception e) {
+//            log.warn("用户未登录: {}", e.getMessage());
+//            return false;
+//        }
+//        
+//        // 先检查是不是管理员
+//        List<String> roles = userLogin.getRoles();
+//        boolean isManager = roles.stream().anyMatch(MANAGERS::contains);
+//        if (isManager) return true;
+//        
+//        // 如果不是管理员，再看看发表博客的用户是不是正在操作的用户
+//        Blog blog = this.getById(blogId);
+//        return blog.getUserId().equals(userId);
+//    }
+    
+    // 只检查当前用户能否操作博客
+    private User checkAccessibleOperation(Long blogId) {
+        return checkAccessibleOperation(blogId, (String[]) null);
+    }
+    
+    // 只检查当前用户角色是否符合参数所需
+    private User checkAccessibleOperation(String... roles) {
+        return checkAccessibleOperation(null, roles);
+    }
+    
+    // TODO: 待优化
+    private User checkAccessibleOperation(Long blogId, String... roles) {
+        if (isTestEnvironment()) return new User();
         
         // 检查登录
         final Long userId;
@@ -203,23 +239,28 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
             userId = userLogin.getUser().getId();
         } catch (Exception e) {
             log.warn("用户未登录: {}", e.getMessage());
-            return false;
+            return null;
         }
         
-        // 先检查是不是管理员
-        List<String> roles = userLogin.getRoles();
-        boolean isManager = roles.stream().anyMatch(MANAGERS::contains);
-        if (isManager) return true;
+        // 检查角色权限是否符合条件
+        if (roles != null) {
+            List<String> currentRoles = userLogin.getRoles();
+            boolean accessRole = currentRoles.stream().anyMatch(Set.of(roles)::contains);
+            if (accessRole) return userLogin.getUser();
+        }
         
-        // 如果不是管理员，再看看发表博客的用户是不是正在操作的用户
-        Blog blog = this.getById(blogId);
-        return blog.getUserId().equals(userId);
-    }
+        // 检查博客id是否符合条件
+        if (blogId != null) {
+            // 如果不是管理员，再看看发表博客的用户是不是正在操作的用户
+            UserBlog blog = userBlogMapper.selectById(blogId);
+            if (!blog.getUserId().equals(userId)) return null;
+        }
+        return userLogin.getUser();
+    }    
+    
     
     // 用于测试类继承
     protected boolean isTestEnvironment() {
         return false;
     }
-    
-    private final static Set<String> MANAGERS = Set.of("ROLE_ADMIN", "ROLE_MANAGER");
 }
