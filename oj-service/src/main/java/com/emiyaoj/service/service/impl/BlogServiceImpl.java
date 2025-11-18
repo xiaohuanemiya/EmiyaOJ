@@ -12,6 +12,7 @@ import com.emiyaoj.service.domain.vo.BlogVO;
 import com.emiyaoj.service.domain.vo.CommentVO;
 import com.emiyaoj.service.mapper.*;
 import com.emiyaoj.service.service.IBlogService;
+import com.emiyaoj.service.util.AuthUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -55,9 +56,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     public PageVO<BlogVO> select(BlogQueryDTO queryDTO) {
         Page<Blog> page = new PageDTO(queryDTO.getPageNo(), queryDTO.getPageSize(), null, null).toMpPageDefaultSortByCreateTimeDesc();
         LambdaQueryWrapper<Blog> wrapper = new LambdaQueryWrapper<Blog>()
-                                        .eq(Blog::getDeleted, 0)  // 未被删除
-                                        .eq(queryDTO.getUserId() != null, Blog::getUserId, queryDTO.getUserId())  // 指定用户
-                                        .like(!ObjectUtils.isEmpty(queryDTO.getTitle()), Blog::getTitle, queryDTO.getTitle());  // 模糊查询
+                                           .eq(Blog::getDeleted, 0)  // 未被删除
+                                           .eq(queryDTO.getUserId() != null, Blog::getUserId, queryDTO.getUserId())  // 指定用户
+                                           .like(!ObjectUtils.isEmpty(queryDTO.getTitle()), Blog::getTitle, queryDTO.getTitle());  // 模糊查询
         // 查当天
         Optional.ofNullable(queryDTO.getCreateTime()).ifPresent(t -> {
             LocalDateTime startOfDay = t.toLocalDate().atStartOfDay();
@@ -97,7 +98,17 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     
     @Override
     public boolean deleteBlogById(Long blogId) {
-        if (checkAccessibleOperation(blogId, "ROLE_MANAGER", "ROLE_ADMIN") == null) return false;
+//        if (checkAccessibleOperation(blogId, "ROLE_MANAGER", "ROLE_ADMIN") == null) return false;
+        boolean isAccessibleOperation = AuthUtils.checkAnyRoleThenUserLogin(userLogin -> {
+            Long userId = userLogin.getUser().getId();
+            Blog blog = this.getById(userId);
+            return blog.getUserId().equals(userId);
+        });
+        
+        if (!isAccessibleOperation) {
+            return false;
+        }
+        
         blogTagAssociationMapper.delete(new LambdaQueryWrapper<BlogTagAssociation>().eq(BlogTagAssociation::getBlogId, blogId));
         return this.updateById(new Blog(blogId, null, null, null, null, LocalDateTime.now(), 1));
     }
@@ -105,14 +116,21 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     @Override
     public boolean editBlog(BlogEditDTO editDTO) {
         Long blogId = editDTO.getId();
-        return checkAccessibleOperation(blogId, "ROLE_MANAGER", "ROLE_ADMIN") != null &&
+        
+        boolean isAccessibleOperation = AuthUtils.checkAnyRoleThenUserLogin(userLogin -> {
+            Long userId = userLogin.getUser().getId();
+            Blog blog = this.getById(userId);
+            return blog.getUserId().equals(userId);
+        });
+        
+        return isAccessibleOperation &&
                this.updateById(new Blog(
-               blogId, 
+               blogId,
                null,
-               editDTO.getTitle(), 
-               editDTO.getContent(), 
-               null, 
-               LocalDateTime.now(), 
+               editDTO.getTitle(),
+               editDTO.getContent(),
+               null,
+               LocalDateTime.now(),
                null));
     }
     
@@ -184,83 +202,5 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         commentVO.setNickname(ub.getNickname());
         
         return commentVO;
-    }
-    
-    /**
-     * @see com.emiyaoj.service.service.impl.UserServiceImpl
-     */
-//    private boolean checkAccessRole(Long blogId) {  // TODO: [博客模块] 鉴权功能待优化
-//        if (isTestEnvironment()) return true;
-//        
-//        if (blogId == null) return false;
-//        
-//        // 检查登录
-//        final Long userId;
-//        final UserLogin userLogin;
-//        try {
-//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//            userLogin = (UserLogin) authentication.getPrincipal();
-//            userId = userLogin.getUser().getId();
-//        } catch (Exception e) {
-//            log.warn("用户未登录: {}", e.getMessage());
-//            return false;
-//        }
-//        
-//        // 先检查是不是管理员
-//        List<String> roles = userLogin.getRoles();
-//        boolean isManager = roles.stream().anyMatch(MANAGERS::contains);
-//        if (isManager) return true;
-//        
-//        // 如果不是管理员，再看看发表博客的用户是不是正在操作的用户
-//        Blog blog = this.getById(blogId);
-//        return blog.getUserId().equals(userId);
-//    }
-    
-    // 只检查当前用户能否操作博客
-    private User checkAccessibleOperation(Long blogId) {
-        return checkAccessibleOperation(blogId, (String[]) null);
-    }
-    
-    // 只检查当前用户角色是否符合参数所需
-    private User checkAccessibleOperation(String... roles) {
-        return checkAccessibleOperation(null, roles);
-    }
-    
-    // TODO: 待优化
-    private User checkAccessibleOperation(Long blogId, String... roles) {
-        if (isTestEnvironment()) return new User();
-        
-        // 检查登录
-        final Long userId;
-        final UserLogin userLogin;
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            userLogin = (UserLogin) authentication.getPrincipal();
-            userId = userLogin.getUser().getId();
-        } catch (Exception e) {
-            log.warn("用户未登录: {}", e.getMessage());
-            return null;
-        }
-        
-        // 检查角色权限是否符合条件
-        if (roles != null) {
-            List<String> currentRoles = userLogin.getRoles();
-            boolean accessRole = currentRoles.stream().anyMatch(Set.of(roles)::contains);
-            if (accessRole) return userLogin.getUser();
-        }
-        
-        // 检查博客id是否符合条件
-        if (blogId != null) {
-            // 如果不是管理员，再看看发表博客的用户是不是正在操作的用户
-            UserBlog blog = userBlogMapper.selectById(blogId);
-            if (!blog.getUserId().equals(userId)) return null;
-        }
-        return userLogin.getUser();
-    }    
-    
-    
-    // 用于测试类继承
-    protected boolean isTestEnvironment() {
-        return false;
     }
 }

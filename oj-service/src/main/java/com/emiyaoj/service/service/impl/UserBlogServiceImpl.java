@@ -16,6 +16,7 @@ import com.emiyaoj.service.mapper.BlogStarMapper;
 import com.emiyaoj.service.mapper.UserBlogMapper;
 import com.emiyaoj.service.mapper.UserMapper;
 import com.emiyaoj.service.service.IUserBlogService;
+import com.emiyaoj.service.util.AuthUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -82,9 +83,19 @@ public class UserBlogServiceImpl extends ServiceImpl<UserBlogMapper, UserBlog> i
     
     @Override
     public boolean starBlog(Long blogId) {
-        User user = checkAccessibleOperation(blogId);
-        if (user == null) return false;
-        BlogStar blogStar = new BlogStar(null, user.getId(), blogId, LocalDateTime.now(), 0);
+//        User user = checkAccessibleOperation(blogId);
+        
+//        User user = AuthUtils.getUser();
+//        if (user == null) return false;
+//        Long userId = user.getId();
+        Long userId = AuthUtils.getUserId();
+
+        Blog blog = blogMapper.selectById(blogId);
+        if (!blog.getUserId().equals(userId)) return false;
+        
+        
+        
+        BlogStar blogStar = new BlogStar(null, userId, blogId, LocalDateTime.now(), 0);
         int i = blogStarMapper.insert(blogStar);
         return i == 1;
     }
@@ -124,59 +135,5 @@ public class UserBlogServiceImpl extends ServiceImpl<UserBlogMapper, UserBlog> i
                                 .toList();
         
         this.remove(new LambdaQueryWrapper<UserBlog>().in(UserBlog::getUserId, deletedIds));
-    }
-    
-    // 只检查当前用户能否操作博客
-    private User checkAccessibleOperation(Long blogId) {
-        return checkAccessibleOperation(blogId, (String[]) null);
-    }
-    
-    // 只检查当前用户角色是否符合参数所需
-    private User checkAccessibleOperation(String... roles) {
-        return checkAccessibleOperation(null, roles);
-    }
-    
-    // TODO: 待优化
-    
-    /**
-     * 顺序检查：是否为测试环境 -> 是否登录 -> 满足任一角色 -> 博客属于当前用户
-     * @param blogId 博客id
-     * @param roles 待验证的角色列表
-     * @return 当验证通过时返回User对象，否则为null
-     */
-    private User checkAccessibleOperation(Long blogId, String... roles) {
-        if (isTestEnvironment()) return new User();
-        
-        // 检查登录
-        final Long userId;
-        final UserLogin userLogin;
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            userLogin = (UserLogin) authentication.getPrincipal();
-            userId = userLogin.getUser().getId();
-        } catch (Exception e) {
-            log.warn("用户未登录: {}", e.getMessage());
-            return null;
-        }
-        
-        // 检查角色权限是否符合条件
-        if (roles != null) {
-            List<String> currentRoles = userLogin.getRoles();
-            boolean accessRole = currentRoles.stream().anyMatch(Set.of(roles)::contains);
-            if (accessRole) return userLogin.getUser();
-        }
-        
-        // 检查博客id是否符合条件
-        if (blogId != null) {
-            // 如果不是管理员，再看看发表博客的用户是不是正在操作的用户
-            UserBlog blog = this.getById(blogId);
-            if (!blog.getUserId().equals(userId)) return null;
-        }
-        return userLogin.getUser();
-    }
-    
-    // 用于测试类继承
-    protected boolean isTestEnvironment() {
-        return false;
     }
 }
