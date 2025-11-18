@@ -13,6 +13,11 @@ spring:
       host: 10.30.22.1
       port: 6379
 
+# 沙箱配置
+sandbox:
+  url: http://10.30.22.1:10000
+  timeout: 30000  # 超时时间（毫秒）
+
 
 # JWT配置
 jwt:
