@@ -180,12 +180,13 @@ public class BlogServiceTest {
                                                BlogTagAssociationMapper blogTagAssociationMapper,
                                                UserRoleMapper userRoleMapper,
                                                RoleMapper roleMapper) {
-            return new BlogServiceImpl(blogTagMapper, blogTagAssociationMapper, userRoleMapper, roleMapper) {
-                @Override
-                protected boolean isTestEnvironment() {
-                    return true;
-                }
-            };
+//            return new BlogServiceImpl(blogTagMapper, blogTagAssociationMapper, userRoleMapper, roleMapper) {
+//                @Override
+//                protected boolean isTestEnvironment() {
+//                    return true;
+//                }
+//            };
+            return null;
         }
     }
 }
