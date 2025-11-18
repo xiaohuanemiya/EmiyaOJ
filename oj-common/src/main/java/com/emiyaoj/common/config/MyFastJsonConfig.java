@@ -35,7 +35,7 @@ public class MyFastJsonConfig implements WebMvcConfigurer {
         converter.setFastJsonConfig(config);
         
         // 将Fastjson2转换器添加到转换器列表的首位，优先使用
-        converters.addFirst(converter);
+        converters.add(0, converter);
     }
 
     private static FastJsonConfig getFastJsonConfig() {

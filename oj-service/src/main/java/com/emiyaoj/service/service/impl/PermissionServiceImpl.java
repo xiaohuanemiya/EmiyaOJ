@@ -257,15 +257,15 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
 
         // 设置权限类型描述
         switch (permission.getPermissionType()) {
-            case PermissionTypeEnum.MENU -> {
+            case MENU -> {
                 permissionVO.setPermissionTypeDesc("菜单");
                 permissionVO.setPermissionType(1);
             }
-            case PermissionTypeEnum.BUTTON -> {
+            case BUTTON -> {
                 permissionVO.setPermissionTypeDesc("按钮");
                 permissionVO.setPermissionType(2);
             }
-            case PermissionTypeEnum.LINK -> {
+            case LINK -> {
                 permissionVO.setPermissionTypeDesc("接口");
                 permissionVO.setPermissionType(3);
             }
