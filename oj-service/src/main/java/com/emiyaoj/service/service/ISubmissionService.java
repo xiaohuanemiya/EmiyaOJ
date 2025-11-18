@@ -1,0 +1,45 @@
+package com.emiyaoj.service.service;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.emiyaoj.service.domain.pojo.Submission;
+
+/**
+ * 提交服务接口
+ */
+public interface ISubmissionService extends IService<Submission> {
+    
+    /**
+     * 创建提交并开始判题
+     * 
+     * @param submission 提交信息
+     * @return 提交ID
+     */
+    Long createAndJudge(Submission submission);
+    
+    /**
+     * 分页查询用户提交记录
+     * 
+     * @param page 页码
+     * @param size 每页大小
+     * @param userId 用户ID（可选）
+     * @param problemId 题目ID（可选）
+     * @return 提交分页
+     */
+    Page<Submission> listSubmissions(int page, int size, Long userId, Long problemId);
+    
+    /**
+     * 更新提交状态
+     * 
+     * @param submissionId 提交ID
+     * @param status 状态
+     * @param timeUsed 时间使用（毫秒）
+     * @param memoryUsed 内存使用（KB）
+     * @param errorMessage 错误信息
+     * @param compileMessage 编译信息
+     * @param passRate 通过率
+     * @param score 得分
+     */
+    void updateStatus(Long submissionId, String status, Integer timeUsed, Integer memoryUsed, 
+                     String errorMessage, String compileMessage, String passRate, Integer score);
+}
