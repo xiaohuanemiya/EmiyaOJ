@@ -69,8 +69,7 @@ CREATE TABLE `test_case` (
     PRIMARY KEY (`id`),
     INDEX `idx_problem_id` (`problem_id`),
     INDEX `idx_is_sample` (`is_sample`),
-    INDEX `idx_sort_order` (`sort_order`),
-    CONSTRAINT `fk_testcase_problem` FOREIGN KEY (`problem_id`) REFERENCES `problem` (`id`) ON DELETE CASCADE
+    INDEX `idx_sort_order` (`sort_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='测试用例表';
 
 -- 提交记录表
@@ -95,10 +94,7 @@ CREATE TABLE `submission` (
     INDEX `idx_user_id` (`user_id`),
     INDEX `idx_language_id` (`language_id`),
     INDEX `idx_status` (`status`),
-    INDEX `idx_create_time` (`create_time`),
-    CONSTRAINT `fk_submission_problem` FOREIGN KEY (`problem_id`) REFERENCES `problem` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_submission_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_submission_language` FOREIGN KEY (`language_id`) REFERENCES `language` (`id`)
+    INDEX `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='提交记录表';
 
 -- 测试用例判题结果表
@@ -113,9 +109,7 @@ CREATE TABLE `submission_result` (
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (`id`),
     INDEX `idx_submission_id` (`submission_id`),
-    INDEX `idx_test_case_id` (`test_case_id`),
-    CONSTRAINT `fk_result_submission` FOREIGN KEY (`submission_id`) REFERENCES `submission` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_result_testcase` FOREIGN KEY (`test_case_id`) REFERENCES `test_case` (`id`) ON DELETE CASCADE
+    INDEX `idx_test_case_id` (`test_case_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='测试用例判题结果表';
 
 -- 标签表
@@ -139,7 +133,5 @@ CREATE TABLE `problem_tag` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_problem_tag` (`problem_id`, `tag_id`),
     INDEX `idx_problem_id` (`problem_id`),
-    INDEX `idx_tag_id` (`tag_id`),
-    CONSTRAINT `fk_problem_tag_problem` FOREIGN KEY (`problem_id`) REFERENCES `problem` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_problem_tag_tag` FOREIGN KEY (`tag_id`) REFERENCES `tag` (`id`) ON DELETE CASCADE
+    INDEX `idx_tag_id` (`tag_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='题目标签关联表';
