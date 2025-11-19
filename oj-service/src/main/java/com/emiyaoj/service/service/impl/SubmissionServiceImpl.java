@@ -13,13 +13,11 @@ import com.emiyaoj.service.domain.pojo.Submission;
 import com.emiyaoj.service.domain.vo.oj.SubmissionDetailVO;
 import com.emiyaoj.service.domain.vo.oj.SubmissionVO;
 import com.emiyaoj.service.mapper.SubmissionMapper;
-import com.emiyaoj.service.service.IJudgeService;
 import com.emiyaoj.service.service.ILanguageService;
 import com.emiyaoj.service.service.IProblemService;
 import com.emiyaoj.service.service.ISubmissionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -35,13 +33,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submission> implements ISubmissionService {
     
-    private final IJudgeService judgeService;
     private final IProblemService problemService;
     private final ILanguageService languageService;
     
     @Override
-    public Long createAndJudge(Submission submission) {
-        // 设置初始状态
+    public Long createSubmission(Submission submission) {
+        // 设置初始状态为PENDING
         submission.setStatus(JudgeStatus.PENDING.getValue());
         submission.setScore(0);
         submission.setTimeUsed(0);
@@ -49,9 +46,6 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
         
         // 保存提交记录
         save(submission);
-        
-        // 异步执行判题
-        judgeAsync(submission.getId());
         
         return submission.getId();
     }
@@ -79,28 +73,17 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
                 .ipAddress(ipAddress)
                 .build();
         
-        // 保存并开始判题
-        Long submissionId = createAndJudge(submission);
+        // 保存提交记录（不触发判题）
+        Long submissionId = createSubmission(submission);
         
         // 增加题目提交次数
         problemService.increaseSubmitCount(problem.getId());
         
         Map<String, Object> result = new HashMap<>();
         result.put("submissionId", submissionId);
-        result.put("message", "提交成功，正在判题中...");
+        result.put("message", "提交成功，请触发判题");
         
         return result;
-    }
-    
-    @Async
-    public void judgeAsync(Long submissionId) {
-        try {
-            judgeService.judge(submissionId);
-        } catch (Exception e) {
-            log.error("Judge failed for submission: {}", submissionId, e);
-            updateStatus(submissionId, JudgeStatus.SYSTEM_ERROR.getValue(), 0, 0, 
-                    e.getMessage(), null, "0/0", 0);
-        }
     }
     
     @Override

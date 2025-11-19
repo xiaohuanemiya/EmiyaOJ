@@ -8,6 +8,7 @@ import com.emiyaoj.service.sandbox.dto.*;
 import com.emiyaoj.service.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -27,6 +28,18 @@ public class JudgeServiceImpl implements IJudgeService {
     private final ITestCaseService testCaseService;
     private final SubmissionResultMapper submissionResultMapper;
     private final SandboxClient sandboxClient;
+    
+    @Async
+    @Override
+    public void judgeAsync(Long submissionId) {
+        try {
+            judge(submissionId);
+        } catch (Exception e) {
+            log.error("Judge failed for submission: {}", submissionId, e);
+            submissionService.updateStatus(submissionId, JudgeStatus.SYSTEM_ERROR.getValue(), 0, 0, 
+                    e.getMessage(), null, "0/0", 0);
+        }
+    }
     
     @Override
     public void judge(Long submissionId) {

@@ -16,12 +16,12 @@ import java.util.Map;
 public interface ISubmissionService extends IService<Submission> {
     
     /**
-     * 创建提交并开始判题
+     * 创建提交记录（不触发判题）
      * 
      * @param submission 提交信息
      * @return 提交ID
      */
-    Long createAndJudge(Submission submission);
+    Long createSubmission(Submission submission);
     
     /**
      * 提交代码

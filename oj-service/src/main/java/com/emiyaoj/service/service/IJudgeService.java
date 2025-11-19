@@ -6,7 +6,14 @@ package com.emiyaoj.service.service;
 public interface IJudgeService {
     
     /**
-     * 执行判题
+     * 异步执行判题
+     * 
+     * @param submissionId 提交ID
+     */
+    void judgeAsync(Long submissionId);
+    
+    /**
+     * 执行判题（同步方法，由异步调用）
      * 
      * @param submissionId 提交ID
      */
