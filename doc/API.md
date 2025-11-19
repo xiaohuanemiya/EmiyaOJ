@@ -34,30 +34,16 @@ Authorization: Bearer <your_jwt_token>
     {
       "id": 1,
       "name": "C",
-      "version": "gcc-11",
+      "version": "gcc-14",
       "sourceFileExt": ".c",
       "isCompiled": 1
     },
     {
       "id": 2,
       "name": "C++",
-      "version": "g++-11",
+      "version": "g++-14",
       "sourceFileExt": ".cpp",
       "isCompiled": 1
-    },
-    {
-      "id": 3,
-      "name": "Java",
-      "version": "openjdk-21",
-      "sourceFileExt": ".java",
-      "isCompiled": 1
-    },
-    {
-      "id": 4,
-      "name": "Python",
-      "version": "python-3.11",
-      "sourceFileExt": ".py",
-      "isCompiled": 0
     }
   ]
 }
@@ -200,7 +186,7 @@ Authorization: Bearer <your_jwt_token>
         "problemTitle": "A+B Problem",
         "userId": 1,
         "languageId": 1,
-        "languageName": "C gcc-11",
+        "languageName": "C gcc-14",
         "status": "Accepted",
         "score": 100,
         "timeUsed": 10,
@@ -233,7 +219,7 @@ Authorization: Bearer <your_jwt_token>
     "problemTitle": "A+B Problem",
     "userId": 1,
     "languageId": 1,
-    "languageName": "C gcc-11",
+    "languageName": "C gcc-14",
     "code": "#include <stdio.h>\nint main() {...}",
     "status": "Accepted",
     "score": 100,
@@ -288,10 +274,15 @@ print(f"题目: {problem['title']}")
 # 2. 提交代码
 submit_data = {
     "problemId": 1,
-    "languageId": 4,  # Python
+    "languageId": 1,  # C
     "code": """
-a, b = map(int, input().split())
-print(a + b)
+#include <stdio.h>
+int main() {
+    int a, b;
+    scanf("%d %d", &a, &b);
+    printf("%d", a + b);
+    return 0;
+}
 """
 }
 

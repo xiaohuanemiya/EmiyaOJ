@@ -4,12 +4,8 @@
 
 -- 插入支持的编程语言
 INSERT INTO `language` (`name`, `version`, `compile_command`, `execute_command`, `source_file_ext`, `executable_ext`, `is_compiled`, `time_limit_multiplier`, `memory_limit_multiplier`, `status`) VALUES
-('C', 'gcc-11', 'gcc -O2 -Wall -std=c11 -o {executable} {source}', '{executable}', '.c', '', 1, 1.0, 1.0, 1),
-('C++', 'g++-11', 'g++ -O2 -Wall -std=c++17 -o {executable} {source}', '{executable}', '.cpp', '', 1, 1.0, 1.0, 1),
-('Java', 'openjdk-21', 'javac -encoding UTF-8 {source}', 'java -Xms256m -Xmx{memory}m -Xss256m Main', '.java', '', 1, 2.0, 2.0, 1),
-('Python', 'python-3.11', '', 'python3 {source}', '.py', '', 0, 3.0, 2.0, 1),
-('Python', 'python-3.9', '', 'python3 {source}', '.py', '', 0, 3.0, 2.0, 1),
-('Go', 'go-1.21', 'go build -o {executable} {source}', '{executable}', '.go', '', 1, 1.5, 1.5, 1);
+('C', 'gcc-14', 'gcc -O2 -Wall -std=c17 -o {executable} {source}', '{executable}', '.c', '', 1, 1.0, 1.0, 1),
+('C++', 'g++-14', 'g++ -O2 -Wall -std=c++20 -o {executable} {source}', '{executable}', '.cpp', '', 1, 1.0, 1.0, 1);
 
 -- 插入示例标签
 INSERT INTO `tag` (`name`, `description`, `color`) VALUES
