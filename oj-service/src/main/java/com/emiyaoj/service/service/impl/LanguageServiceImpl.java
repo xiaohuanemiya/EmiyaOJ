@@ -3,11 +3,13 @@ package com.emiyaoj.service.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.emiyaoj.service.domain.pojo.Language;
+import com.emiyaoj.service.domain.vo.oj.LanguageVO;
 import com.emiyaoj.service.mapper.LanguageMapper;
 import com.emiyaoj.service.service.ILanguageService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 语言服务实现类
@@ -20,6 +22,20 @@ public class LanguageServiceImpl extends ServiceImpl<LanguageMapper, Language> i
         LambdaQueryWrapper<Language> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Language::getStatus, 1);
         return list(wrapper);
+    }
+    
+    @Override
+    public List<LanguageVO> listEnabledVO() {
+        List<Language> languages = listEnabled();
+        return languages.stream()
+                .map(lang -> LanguageVO.builder()
+                        .id(lang.getId())
+                        .name(lang.getName())
+                        .version(lang.getVersion())
+                        .sourceFileExt(lang.getSourceFileExt())
+                        .isCompiled(lang.getIsCompiled())
+                        .build())
+                .collect(Collectors.toList());
     }
     
     @Override

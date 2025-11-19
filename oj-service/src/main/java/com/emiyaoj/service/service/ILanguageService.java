@@ -2,6 +2,7 @@ package com.emiyaoj.service.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.emiyaoj.service.domain.pojo.Language;
+import com.emiyaoj.service.domain.vo.oj.LanguageVO;
 
 import java.util.List;
 
@@ -16,6 +17,13 @@ public interface ILanguageService extends IService<Language> {
      * @return 语言列表
      */
     List<Language> listEnabled();
+    
+    /**
+     * 获取所有启用的语言VO列表
+     * 
+     * @return 语言VO列表
+     */
+    List<LanguageVO> listEnabledVO();
     
     /**
      * 根据名称和版本查询语言
