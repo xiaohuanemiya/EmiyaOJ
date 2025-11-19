@@ -75,9 +75,10 @@ public class JudgeServiceImpl implements IJudgeService {
         }
         
         // 4. 如果需要编译，先编译
+        String compiledFileId = null;
         if (language.getIsCompiled() == 1) {
-            boolean compileSuccess = compile(submission, language);
-            if (!compileSuccess) {
+            compiledFileId = compile(submission, language);
+            if (compiledFileId == null) {
                 return; // 编译失败，已更新状态
             }
         }
@@ -88,31 +89,53 @@ public class JudgeServiceImpl implements IJudgeService {
             log.error("No test cases found for problem: {}", problem.getId());
             submissionService.updateStatus(submissionId, JudgeStatus.SYSTEM_ERROR.getValue(), 
                     0, 0, "No test cases found", null, "0/0", 0);
+            // 删除编译文件
+            if (compiledFileId != null) {
+                try {
+                    sandboxClient.deleteFile(compiledFileId);
+                } catch (Exception e) {
+                    log.warn("Failed to delete compiled file: {}", compiledFileId, e);
+                }
+            }
             return;
         }
         
         // 6. 运行测试用例
-        runTestCases(submission, problem, language, testCases);
+        try {
+            runTestCases(submission, problem, language, testCases, compiledFileId);
+        } finally {
+            // 7. 删除编译后的缓存文件，避免内存泄漏
+            if (compiledFileId != null) {
+                try {
+                    sandboxClient.deleteFile(compiledFileId);
+                    log.info("Deleted compiled file: {}", compiledFileId);
+                } catch (Exception e) {
+                    log.warn("Failed to delete compiled file: {}", compiledFileId, e);
+                }
+            }
+        }
         
         log.info("Judge completed for submission: {}", submissionId);
     }
     
     /**
-     * 编译代码
+     * 编译代码并返回编译后的文件ID
      */
-    private boolean compile(Submission submission, Language language) {
+    private String compile(Submission submission, Language language) {
         log.info("Compiling code for submission: {}", submission.getId());
         
         try {
             // 准备源文件
             String sourceFileName = getSourceFileName(language);
+            String executableName = "a"; // 统一使用 "a" 作为可执行文件名
+            
             Map<String, SandboxFile> copyIn = new HashMap<>();
             copyIn.put(sourceFileName, new MemoryFile(submission.getCode()));
             
             // 准备编译命令
             String compileCommand = language.getCompileCommand()
                     .replace("{source}", sourceFileName)
-                    .replace("{executable}", "main");
+                    .replace("{executable}", executableName);
             
             String[] cmdParts = compileCommand.split("\\s+");
             List<String> args = new ArrayList<>(Arrays.asList(cmdParts));
@@ -122,15 +145,16 @@ public class JudgeServiceImpl implements IJudgeService {
                     .args(args)
                     .env(Arrays.asList("PATH=/usr/bin:/bin"))
                     .files(Arrays.asList(
-                            null, // stdin
+                            new MemoryFile(""), // stdin
                             new Collector("stdout", 10240L), // stdout
                             new Collector("stderr", 10240L)  // stderr
                     ))
                     .cpuLimit(10_000_000_000L) // 10秒编译时间
                     .memoryLimit(512L * 1024 * 1024) // 512MB
+                    .procLimit(50)
                     .copyIn(copyIn)
-                    .copyOut(Arrays.asList("main"))
-                    .copyOutCached(Arrays.asList("main"))
+                    .copyOut(Arrays.asList("stdout", "stderr"))
+                    .copyOutCached(Arrays.asList(executableName)) // 缓存编译后的可执行文件
                     .build();
             
             SandboxRequest request = SandboxRequest.builder()
@@ -144,7 +168,7 @@ public class JudgeServiceImpl implements IJudgeService {
                 log.error("No compile result returned");
                 submissionService.updateStatus(submission.getId(), JudgeStatus.SYSTEM_ERROR.getValue(), 
                         0, 0, "Compile failed: No result", null, "0/0", 0);
-                return false;
+                return null;
             }
             
             SandboxResult result = results.get(0);
@@ -155,24 +179,34 @@ public class JudgeServiceImpl implements IJudgeService {
                 String errorMsg = result.getFiles() != null ? result.getFiles().get("stderr") : result.getError();
                 submissionService.updateStatus(submission.getId(), JudgeStatus.COMPILE_ERROR.getValue(), 
                         0, 0, null, errorMsg, "0/0", 0);
-                return false;
+                return null;
             }
             
-            log.info("Compilation successful for submission: {}", submission.getId());
-            return true;
+            // 获取编译后的文件ID
+            if (result.getFileIds() == null || !result.getFileIds().containsKey(executableName)) {
+                log.error("Compiled file ID not found");
+                submissionService.updateStatus(submission.getId(), JudgeStatus.SYSTEM_ERROR.getValue(), 
+                        0, 0, "Compiled file ID not found", null, "0/0", 0);
+                return null;
+            }
+            
+            String fileId = result.getFileIds().get(executableName);
+            log.info("Compilation successful for submission: {}, fileId: {}", submission.getId(), fileId);
+            return fileId;
             
         } catch (Exception e) {
             log.error("Compile exception", e);
             submissionService.updateStatus(submission.getId(), JudgeStatus.SYSTEM_ERROR.getValue(), 
                     0, 0, "Compile exception: " + e.getMessage(), null, "0/0", 0);
-            return false;
+            return null;
         }
     }
     
     /**
      * 运行测试用例
      */
-    private void runTestCases(Submission submission, Problem problem, Language language, List<TestCase> testCases) {
+    private void runTestCases(Submission submission, Problem problem, Language language, 
+                              List<TestCase> testCases, String compiledFileId) {
         log.info("Running test cases for submission: {}, count: {}", submission.getId(), testCases.size());
         
         int passedCount = 0;
@@ -184,7 +218,7 @@ public class JudgeServiceImpl implements IJudgeService {
         for (TestCase testCase : testCases) {
             try {
                 // 运行单个测试用例
-                TestResult testResult = runSingleTest(submission, problem, language, testCase);
+                TestResult testResult = runSingleTest(submission, problem, language, testCase, compiledFileId);
                 
                 // 保存测试结果
                 SubmissionResult submissionResult = SubmissionResult.builder()
@@ -236,7 +270,8 @@ public class JudgeServiceImpl implements IJudgeService {
     /**
      * 运行单个测试用例
      */
-    private TestResult runSingleTest(Submission submission, Problem problem, Language language, TestCase testCase) {
+    private TestResult runSingleTest(Submission submission, Problem problem, Language language, 
+                                     TestCase testCase, String compiledFileId) {
         try {
             // 准备执行命令
             String executeCommand = language.getExecuteCommand()
@@ -252,9 +287,9 @@ public class JudgeServiceImpl implements IJudgeService {
             
             // 构建沙箱请求
             Map<String, SandboxFile> copyIn = new HashMap<>();
-            if (language.getIsCompiled() == 1) {
-                // 使用已编译的文件
-                copyIn.put("main", new MemoryFile("placeholder")); // 实际应该从缓存获取
+            if (language.getIsCompiled() == 1 && compiledFileId != null) {
+                // 使用已编译的文件（通过fileId引用）
+                copyIn.put("a", new PreparedFile(compiledFileId));
             } else {
                 // 直接运行源代码
                 copyIn.put(getSourceFileName(language), new MemoryFile(submission.getCode()));
