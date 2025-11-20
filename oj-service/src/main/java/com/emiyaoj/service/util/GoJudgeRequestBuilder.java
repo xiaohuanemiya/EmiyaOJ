@@ -51,6 +51,47 @@ public class GoJudgeRequestBuilder {
     }
 
     /**
+     * 构建C编译请求
+     * @param sourceCode 源代码
+     * @param outputName 编译后输出文件名
+     * @return Request 交给 GoJudgeService 处理
+     */
+    public static Request buildCCompileRequest(String sourceCode, String outputName) {
+        Request request = new Request();
+        
+        Cmd cmd = new Cmd();
+        UUID uuid = UUID.randomUUID();
+        //通过UUID生成唯一的输出文件名，防止并发时文件名冲突
+        String s = uuid.toString() + ".c";
+        cmd.setArgs(Arrays.asList("/usr/bin/gcc", s, "-o", outputName));
+        cmd.setEnv(Arrays.asList("PATH=/usr/bin:/bin"));
+        
+        // 设置文件描述符
+        List<BaseFile> files = new ArrayList<>();
+        files.add(new MemoryFile("")); // stdin
+        files.add(new Collector("stdout", 10240)); // stdout
+        files.add(new Collector("stderr", 10240)); // stderr
+        cmd.setFiles(files);
+        
+        // 资源限制
+        cmd.setCpuLimit(10_000_000_000L); // 10秒
+        cmd.setMemoryLimit(100 * 1024 * 1024L); // 100MB
+        cmd.setProcLimit(50);
+        
+        // 复制输入文件
+        Map<String, BaseFile> copyIn = new HashMap<>();
+        copyIn.put(s, new MemoryFile(sourceCode));
+        cmd.setCopyIn(copyIn);
+        
+        // 设置输出
+        cmd.setCopyOut(Arrays.asList("stdout", "stderr"));
+        cmd.setCopyOutCached(Arrays.asList(outputName));
+        
+        request.setCmd(Collections.singletonList(cmd));
+        return request;
+    }
+
+    /**
      *
      * @param executableFileId 缓存的可执行文件ID
      * @param input          程序输入
