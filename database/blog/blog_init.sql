@@ -2,9 +2,12 @@ use `emiya-oj`;
 
 create table if not exists user_blog
 (
-    user_id  bigint      not null primary key,
-    username varchar(50) not null,
-    nickname varchar(50) not null
+    user_id     bigint      not null primary key,
+    username    varchar(50) not null,
+    nickname    varchar(50) not null,
+    blog_count  int         not null default 0,
+    star_count  int         not null default 0,
+    create_time datetime    not null default CURRENT_TIMESTAMP
 ) engine = InnoDB
   default charset = utf8mb4
   collate = utf8mb4_general_ci;
@@ -79,3 +82,57 @@ create table if not exists blog_picture
 ) engine = InnoDB
   default charset = utf8mb4
   collate = utf8mb4_general_ci;
+
+-- 博客插入后自动增加博客数量
+DELIMITER $$
+CREATE TRIGGER after_blog_insert
+    AFTER INSERT
+    ON blog
+    FOR EACH ROW
+BEGIN
+    UPDATE user_blog
+    SET blog_count = blog_count + 1
+    WHERE user_id = NEW.user_id;
+END$$
+DELIMITER ;
+
+-- 博客删除后自动减少博客数量
+DELIMITER $$
+CREATE TRIGGER after_blog_delete
+    AFTER UPDATE
+    ON blog
+    FOR EACH ROW
+BEGIN
+    IF NEW.deleted = 1 AND OLD.deleted = 0 THEN
+        UPDATE user_blog
+        SET blog_count = GREATEST(blog_count - 1, 0)
+        WHERE user_id = NEW.user_id;
+    END IF;
+END$$
+DELIMITER ;
+
+-- 收藏插入后自动增加收藏数量
+DELIMITER $$
+CREATE TRIGGER after_blog_star_insert
+    AFTER INSERT
+    ON blog_star
+    FOR EACH ROW
+BEGIN
+    UPDATE user_blog
+    SET star_count = star_count + 1
+    WHERE user_id = NEW.user_id;
+END$$
+DELIMITER ;
+
+-- 收藏删除后自动减少收藏数量
+DELIMITER $$
+CREATE TRIGGER after_blog_star_delete
+    AFTER DELETE
+    ON blog_star
+    FOR EACH ROW
+BEGIN
+    UPDATE user_blog
+    SET star_count = GREATEST(star_count - 1, 0)
+    WHERE user_id = OLD.user_id;
+END$$
+DELIMITER ;

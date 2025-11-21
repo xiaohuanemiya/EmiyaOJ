@@ -43,6 +43,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     private final UserBlogMapper userBlogMapper;
     private final UserRoleMapper userRoleMapper;
     private final RoleMapper roleMapper;
+    private final UserMapper userMapper;
     
     @Override
     public List<BlogVO> selectAll() {
@@ -98,12 +99,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     
     @Override
     public boolean deleteBlogById(Long blogId) {
-//        if (checkAccessibleOperation(blogId, "ROLE_MANAGER", "ROLE_ADMIN") == null) return false;
         boolean isAccessibleOperation = AuthUtils.checkAnyRoleThenUserLogin(userLogin -> {
             Long userId = userLogin.getUser().getId();
             Blog blog = this.getById(userId);
             return blog.getUserId().equals(userId);
-        });
+        }, "ROLE_MANAGER", "ROLE_ADMIN");
         
         if (!isAccessibleOperation) {
             return false;
@@ -121,7 +121,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
             Long userId = userLogin.getUser().getId();
             Blog blog = this.getById(userId);
             return blog.getUserId().equals(userId);
-        });
+        }, "ROLE_ADMIN", "ROLE_MANAGER");
         
         return isAccessibleOperation &&
                this.updateById(new Blog(
@@ -144,6 +144,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     @Override
     public PageVO<CommentVO> selectCommentPage(Long blogId, PageDTO pageDTO) {
         Page<BlogComment> page = new PageDTO(pageDTO.getPageNo(), pageDTO.getPageSize(), null, null).toMpPageDefaultSortByCreateTimeDesc();
+        
         LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<BlogComment>()
                                                   .eq(BlogComment::getBlogId, blogId)
                                                   .eq(BlogComment::getDeleted, 0);
@@ -175,7 +176,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     
     @Override
     public boolean saveComment(Long blogId, BlogCommentSaveDTO blogCommentSaveDTO) {
-        BlogComment blogComment = new BlogComment(null, blogId, blogCommentSaveDTO.getUserId(), blogCommentSaveDTO.getContent(), LocalDateTime.now(), LocalDateTime.now(), 0);
+        Long userId = AuthUtils.getUserId();
+        if (userId == null) return false;
+        BlogComment blogComment = new BlogComment(null, blogId, userId, blogCommentSaveDTO.getContent(), LocalDateTime.now(), LocalDateTime.now(), 0);
         int i = blogCommentMapper.insert(blogComment);
         return i == 1;
     }
@@ -186,7 +189,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         Long blogId = blogComment.getBlogId();
         Blog blog = this.getById(blogId);
         Long fromUserId = blog.getUserId();
-        return AuthUtils.checkAnyRoleThenUserLogin(ul -> ul.getUser().getId().equals(fromUserId), "ROLE_MANAGER", "ROLE_ADMIN");
+        boolean accessibleOperation = AuthUtils.checkAnyRoleThenUserLogin(ul -> ul.getUser().getId().equals(fromUserId), "ROLE_MANAGER", "ROLE_ADMIN");
+        if (accessibleOperation) {
+            blogCommentMapper.deleteById(commentId);
+        }
+        return accessibleOperation;
     }
     
     private BlogVO convertBlogToVO(Blog blog) {
@@ -201,9 +208,22 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         CommentVO commentVO = new CommentVO();
         BeanUtils.copyProperties(bc, commentVO);
         
-        UserBlog ub = userBlogMapper.selectById(bc.getUserId());  // TODO: 待优化
-        commentVO.setUsername(ub.getUsername());
-        commentVO.setNickname(ub.getNickname());
+        Long userId = bc.getUserId();
+        UserBlog ub = userBlogMapper.selectById(userId);  // TODO: 待优化
+        if (ub != null) {
+            commentVO.setUsername(ub.getUsername());
+            commentVO.setNickname(ub.getNickname());
+            return commentVO;
+        }
+        
+        // 可能存在user表存在但userblog不存在的情况。尝试修复
+        User user = userMapper.selectById(userId);
+        if (user != null) {
+            userBlogMapper.insert(new UserBlog(user.getId(), user.getUsername(), user.getNickname(), 0, 0, LocalDateTime.now()));
+        } else {
+            commentVO.setUsername("");
+            commentVO.setNickname("");
+        }
         
         return commentVO;
     }

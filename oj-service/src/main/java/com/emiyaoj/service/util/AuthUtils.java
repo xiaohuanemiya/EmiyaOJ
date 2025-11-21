@@ -26,8 +26,8 @@ public class AuthUtils {
     
     private static UserLogin testUserLogin;
     
-    public void setTestEnable() {
-        testUserLogin = new UserLogin();  // 待扩展
+    public void setTestEnable(UserLogin ul) {
+        testUserLogin = ul;  // 待扩展
         isTestEnvironment = true;
     }
     
@@ -37,6 +37,7 @@ public class AuthUtils {
     
     // 顶层方法，包括异常和日志处理
     public UserLogin getUserLogin() {
+        if (isTestEnvironment) return testUserLogin;
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             return (UserLogin) authentication.getPrincipal();

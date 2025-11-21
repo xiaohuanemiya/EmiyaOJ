@@ -1,6 +1,7 @@
 package com.emiyaoj.service.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -42,11 +43,16 @@ public class UserBlogServiceImpl extends ServiceImpl<UserBlogMapper, UserBlog> i
     private final BlogMapper blogMapper;
     private final BlogStarMapper blogStarMapper;
     private final UserMapper userMapper;
+    private final UserBlogMapper userBlogMapper;
     
     @Override
     public UserBlogVO selectUserBlogById(Long id) {
         UserBlog userBlog = this.getById(id);
-        if (userBlog == null) return null;  // 尝试修复失败则代表用户确实不存在或已删除
+        if (userBlog == null) {
+            userBlog = tryToFixExistUser(id);
+            // 尝试修复失败则代表用户确实不存在或已删除
+            if (userBlog == null) return null;
+        }
         UserBlogVO userBlogVO = new UserBlogVO();
         BeanUtils.copyProperties(userBlog, userBlogVO);
         return userBlogVO;
@@ -71,7 +77,7 @@ public class UserBlogServiceImpl extends ServiceImpl<UserBlogMapper, UserBlog> i
         // Page + 条件查
         blogStarMapper.selectPage(page, new LambdaQueryWrapper<BlogStar>()
                                         .eq(BlogStar::getUserId, queryDTO.getUserId()));
-
+        
         List<Long> blogIds = page.getRecords().stream().map(BlogStar::getBlogId).toList();
         List<Blog> blogs = blogMapper.selectByIds(blogIds);
         List<BlogVO> blogVOs = blogs.stream().map(this::convertBlogToVO).toList();
@@ -83,21 +89,40 @@ public class UserBlogServiceImpl extends ServiceImpl<UserBlogMapper, UserBlog> i
     
     @Override
     public boolean starBlog(Long blogId) {
-//        User user = checkAccessibleOperation(blogId);
-        
-//        User user = AuthUtils.getUser();
-//        if (user == null) return false;
-//        Long userId = user.getId();
         Long userId = AuthUtils.getUserId();
-
+        
         Blog blog = blogMapper.selectById(blogId);
-        if (!blog.getUserId().equals(userId)) return false;
+        if (blog == null || blog.getDeleted().equals(1)) return false;
         
-        
-        
+        int update = blogStarMapper.update(new LambdaUpdateWrapper<BlogStar>()
+                                           .eq(BlogStar::getUserId, userId)
+                                           .eq(BlogStar::getBlogId, blogId)
+                                           .set(BlogStar::getDeleted, 0));
+        // 找到以前的记录，更新
+        if (update == 1) {
+            return true;
+        }
         BlogStar blogStar = new BlogStar(null, userId, blogId, LocalDateTime.now(), 0);
         int i = blogStarMapper.insert(blogStar);
         return i == 1;
+    }
+    
+    /**
+     * <h2>用户取消收藏博客</h2>
+     * 首先检查userId是否存在，然后检查BlogStar存在且还未被删除
+     *
+     * @param blogId 需要取消的博客id
+     * @return 是否取消收藏成功
+     */
+    @Override
+    public boolean unstarBlog(Long blogId) {
+        Long userId = AuthUtils.getUserId();
+        
+        int update = blogStarMapper.update(new LambdaUpdateWrapper<BlogStar>()
+                                           .eq(BlogStar::getUserId, userId)
+                                           .eq(BlogStar::getBlogId, blogId)
+                                           .set(BlogStar::getDeleted, 1));
+        return update == 1;
     }
     
     private BlogVO convertBlogToVO(Blog blog) {
@@ -119,9 +144,9 @@ public class UserBlogServiceImpl extends ServiceImpl<UserBlogMapper, UserBlog> i
     private UserBlog tryToFixExistUser(Long id) {
         if (id == null) return null;
         User user = userMapper.selectById(id);
-        if (user == null || user.getDeleted() == 1) return null;
+        if (user == null) return null;
         // TODO: 改进生成博客模块用户信息的逻辑
-        UserBlog entity = new UserBlog(id, user.getUsername(), user.getNickname());
+        UserBlog entity = new UserBlog(id, user.getUsername(), user.getNickname(), 0, 0, LocalDateTime.now());
         this.save(entity);
         return entity;
     }
@@ -135,5 +160,10 @@ public class UserBlogServiceImpl extends ServiceImpl<UserBlogMapper, UserBlog> i
                                 .toList();
         
         this.remove(new LambdaQueryWrapper<UserBlog>().in(UserBlog::getUserId, deletedIds));
+    }
+    
+    // 保留方法，清除所有已标记删除的收藏记录
+    void clearDeletedStars() {
+        blogStarMapper.delete(new LambdaQueryWrapper<BlogStar>().eq(BlogStar::getDeleted, 1));
     }
 }

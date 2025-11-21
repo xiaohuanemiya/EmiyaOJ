@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
+
 /**
  * <h1>用户博客表</h1>
  * 用于在用户模块和博客模块之间加上一层过渡方便后续对用户博客信息做增量操作
@@ -27,6 +29,10 @@ public class UserBlog {
     // 当扩展属性时保留此构造方法
     public UserBlog(Long userId) {
         this.userId = userId;
+        this.username = "";
+        this.nickname = "";
+        this.blogCount = this.starCount = 0;
+        this.createTime = LocalDateTime.now();
     }
     
     @TableId(value = "user_id", type = IdType.AUTO)
@@ -37,6 +43,15 @@ public class UserBlog {
     
     @TableField("nickname")
     private String nickname;
+    
+    @TableField("blog_count")
+    private Integer blogCount;
+    
+    @TableField("star_count")
+    private Integer starCount;
+    
+    @TableField("create_time")
+    private LocalDateTime createTime;
     
     // TODO: 其他属性待扩展
 }
