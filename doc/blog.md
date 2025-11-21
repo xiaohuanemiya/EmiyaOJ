@@ -15,6 +15,7 @@
 | `/blog/{bid}/comments`   | GET      | 以**表单**的形式提交实现分页查询（抄的百度贴吧）             |
 | `/blog/{bid}/comments`   | POST     | 发表评论                                                     |
 | `/blog/{bid}/star`       | POST     | 收藏博客，需要**用户登录**                                   |
+| `/blog/{bid}/star`       | DELETE   | 取消收藏博客                                                 |
 | `/blog/user/{uid}`       | GET      | 查询指定作者发起的所有博客，暂时不用                         |
 | `/blog/user/{uid}/blogs` | POST     | **分页**按**给定信息**查询指定作者发起的博客                 |
 | `/blog/user/{uid}/star`  | POST     | 分页查用户收藏博客（**暂时不支持**）                         |
@@ -31,7 +32,7 @@
  |--/query  # 条件分页查
  |--/{bid}  # 博客操作
  |   |--/comments  # 博客查、评论
- |   |--/star  # 收藏博客，需要用户登录
+ |   |--/star  # 收藏/取消收藏博客，需要用户登录
  |--/user/{uid}  # 查用户
  |   |--/blogs  # 分页查用户发表博客
  |   |--/star  # 分页查用户收藏博客
@@ -74,7 +75,12 @@ use `emiya-oj`;
 
 create table if not exists user_blog
 (
-    user_id bigint not null primary key
+    user_id     bigint      not null primary key,
+    username    varchar(50) not null,
+    nickname    varchar(50) not null,
+    blog_count  int         not null default 0,
+    star_count  int         not null default 0,
+    create_time datetime    not null default CURRENT_TIMESTAMP
 ) engine = InnoDB
   default charset = utf8mb4
   collate = utf8mb4_general_ci;
@@ -87,7 +93,7 @@ create table if not exists blog
     content     text         not null,
     create_time datetime     not null default CURRENT_TIMESTAMP,
     update_time datetime     not null default CURRENT_TIMESTAMP,
-    deleted     tinyint      not null,
+    deleted     tinyint      not null default 0,
     index idx_user_id (user_id),
     index idx_update_time (update_time)
 ) engine = InnoDB
@@ -115,7 +121,94 @@ create table if not exists blog_tag_association
   default charset = utf8mb4
   collate = utf8mb4_general_ci;
 
-create table if not exists 
+create table if not exists blog_star
+(
+    id          bigint   not null auto_increment primary key,
+    user_id     bigint   not null,
+    blog_id     bigint   not null,
+    create_time datetime not null default CURRENT_TIMESTAMP,
+    deleted     tinyint  not null default 0,
+    unique key uk_user_blog (user_id, blog_id)
+) engine = InnoDB
+  default charset = utf8mb4
+  collate = utf8mb4_general_ci;
+
+create table if not exists blog_comment
+(
+    id          bigint   not null auto_increment primary key,
+    blog_id     bigint   not null,
+    user_id     bigint   not null,
+    content     text     not null,
+    create_time datetime not null default CURRENT_TIMESTAMP,
+    update_time datetime not null default CURRENT_TIMESTAMP,
+    deleted     tinyint  not null default 0,
+    index idx_blog_id (blog_id),
+    index idx_user_id (user_id)
+) engine = InnoDB
+  default charset = utf8mb4
+  collate = utf8mb4_general_ci;
+
+create table if not exists blog_picture
+(
+    url     varchar(255) not null primary key,
+    deleted tinyint      not null default 0
+) engine = InnoDB
+  default charset = utf8mb4
+  collate = utf8mb4_general_ci;
+
+-- 博客插入后自动增加博客数量
+DELIMITER $$
+CREATE TRIGGER after_blog_insert
+    AFTER INSERT
+    ON blog
+    FOR EACH ROW
+BEGIN
+    UPDATE user_blog
+    SET blog_count = blog_count + 1
+    WHERE user_id = NEW.user_id;
+END$$
+DELIMITER ;
+
+-- 博客删除后自动减少博客数量
+DELIMITER $$
+CREATE TRIGGER after_blog_delete
+    AFTER UPDATE
+    ON blog
+    FOR EACH ROW
+BEGIN
+    IF NEW.deleted = 1 AND OLD.deleted = 0 THEN
+        UPDATE user_blog
+        SET blog_count = GREATEST(blog_count - 1, 0)
+        WHERE user_id = NEW.user_id;
+    END IF;
+END$$
+DELIMITER ;
+
+-- 收藏插入后自动增加收藏数量
+DELIMITER $$
+CREATE TRIGGER after_blog_star_insert
+    AFTER INSERT
+    ON blog_star
+    FOR EACH ROW
+BEGIN
+    UPDATE user_blog
+    SET star_count = star_count + 1
+    WHERE user_id = NEW.user_id;
+END$$
+DELIMITER ;
+
+-- 收藏删除后自动减少收藏数量
+DELIMITER $$
+CREATE TRIGGER after_blog_star_delete
+    AFTER DELETE
+    ON blog_star
+    FOR EACH ROW
+BEGIN
+    UPDATE user_blog
+    SET star_count = GREATEST(star_count - 1, 0)
+    WHERE user_id = OLD.user_id;
+END$$
+DELIMITER ;
 ```
 
 ### 引用
@@ -147,6 +240,8 @@ user  # 用户
 ### user_blog
 
 - `user_id`：主键
+- `username`
+- `nickname`
 - `blog_count`：发布博客数量
 - `star_count`：收藏博客数量
 - `create_time`：博客模块用户初始化时间点
@@ -209,10 +304,17 @@ user  # 用户
 
 ### 注意事项
 
-需要删除时，先调用以下sql代码
+需要删除已标记的记录时，先调用以下sql代码
 
 ```mysql
+delete from blog_comment where deleted=1;
 
+delete from blog_star where deleted=1;
+
+delete from blog_tag_association 
+where blog_id in (select id from blog where deleted=1);
+
+delete from blog where deleted=1;
 ```
 
 然后根据`blog_picture`表中`deleted`被标记的内容删除托管的图片
@@ -224,7 +326,7 @@ using emiya-oj;
 delete from blog where deleted=1;
 ```
 
-
+以上流程无法清理**用户已注销但博客模块用户仍然存在**的相关记录
 
 
 

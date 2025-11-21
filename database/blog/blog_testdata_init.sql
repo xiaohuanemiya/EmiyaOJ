@@ -17,7 +17,7 @@ values
     (10084, 10082, 1, 1),
     (11085, 10083, 2, 1);
 
-insert into user_blog
+insert into user_blog(user_id, username, nickname)
 values
     (10080, 'xiaowang', '小王'),
     (10081, 'xiaoli', '小李'),

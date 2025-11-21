@@ -111,7 +111,14 @@ public class BlogController {
     @PreAuthorize("hasAuthority('BLOG.STAR')")
     public ResponseResult<?> starBlog(@PathVariable Long bid) {
         boolean success = userBlogService.starBlog(bid);
-        return success ? ResponseResult.success() : ResponseResult.fail("添加失败");
+        return success ? ResponseResult.success() : ResponseResult.fail("收藏失败");
+    }
+    
+    @DeleteMapping("/{bid}/star")
+    @PreAuthorize("hasAuthority('BLOG.STAR')")
+    public ResponseResult<?> unstarBlog(@PathVariable Long bid) {
+        boolean success = userBlogService.unstarBlog(bid);
+        return success ? ResponseResult.success() : ResponseResult.fail("取消失败");
     }
     
     /**

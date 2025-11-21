@@ -23,4 +23,6 @@ public interface IUserBlogService extends IService<UserBlog> {
     
     boolean starBlog(Long blogId);
     
+    boolean unstarBlog(Long blogId);
+    
 }
