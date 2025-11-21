@@ -182,7 +182,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     
     @Override
     public boolean deleteComment(Long commentId) {
-        return false;  // TODO: [博客模块-评论功能] 评论功能待完善
+        BlogComment blogComment = blogCommentMapper.selectById(commentId);
+        Long blogId = blogComment.getBlogId();
+        Blog blog = this.getById(blogId);
+        Long fromUserId = blog.getUserId();
+        return AuthUtils.checkAnyRoleThenUserLogin(ul -> ul.getUser().getId().equals(fromUserId), "ROLE_MANAGER", "ROLE_ADMIN");
     }
     
     private BlogVO convertBlogToVO(Blog blog) {
