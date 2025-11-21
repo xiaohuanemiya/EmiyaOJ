@@ -1,8 +1,8 @@
 // GoJudgeService.java
 package com.emiyaoj.service.util;
 
-import com.emiyaoj.service.domain.pojo.oj.Model.Request;
-import com.emiyaoj.service.domain.pojo.oj.Model.Result;
+import com.emiyaoj.service.util.oj.Model.Request;
+import com.emiyaoj.service.util.oj.Model.Result;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;

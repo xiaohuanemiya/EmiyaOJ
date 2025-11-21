@@ -1,6 +1,6 @@
 import com.emiyaoj.service.OjApplication;
-import com.emiyaoj.service.domain.pojo.oj.Model.Request;
-import com.emiyaoj.service.domain.pojo.oj.Model.Result;
+import com.emiyaoj.service.util.oj.Model.Request;
+import com.emiyaoj.service.util.oj.Model.Result;
 import com.emiyaoj.service.util.GoJudgeRequestBuilder;
 import com.emiyaoj.service.util.GoJudgeService;
 import org.junit.jupiter.api.Test;
