@@ -114,6 +114,8 @@ create table if not exists blog_tag_association
 ) engine = InnoDB
   default charset = utf8mb4
   collate = utf8mb4_general_ci;
+
+create table if not exists 
 ```
 
 ### 引用
