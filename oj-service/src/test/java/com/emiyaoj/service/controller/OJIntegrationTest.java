@@ -224,4 +224,41 @@ public class OJIntegrationTest {
         assertEquals("Compile Error", submission.getStatus(), "应该是编译错误");
         assertNotNull(submission.getCompileMessage(), "应该有编译错误信息");
     }
+
+    @Test
+    public void testInfiniteLoop() throws InterruptedException {
+        if (cppLanguageId == null || problemId == null) {
+            System.out.println("跳过测试：数据库中没有必要的数据");
+            return;
+        }
+
+        // 死循环代码
+        String infiniteLoopCode = """
+                #include <iostream>
+                int main() {
+                    while(true) {}
+                    return 0;
+                }
+                """;
+
+        SubmitCodeDTO dto = new SubmitCodeDTO();
+        dto.setProblemId(problemId);
+        dto.setLanguageId(cppLanguageId);
+        dto.setCode(infiniteLoopCode);
+
+        Long submissionId = submissionService.submitCode(dto);
+        assertNotNull(submissionId, "提交ID不应为空");
+
+        // 等待判题完成（死循环会超时）
+        Thread.sleep(5000);
+
+        Submission submission = submissionService.getById(submissionId);
+        assertNotNull(submission, "提交记录不应为空");
+        System.out.println("死循环提交状态: " + submission.getStatus());
+        System.out.println("时间: " + submission.getTimeUsed() + "ms");
+        System.out.println("通过率: " + submission.getPassRate());
+
+        // 验证结果 - 应该是超时
+        assertEquals("Time Limit Exceeded", submission.getStatus(), "应该是超时");
+    }
 }
