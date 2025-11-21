@@ -1,5 +1,6 @@
 package com.emiyaoj.service.controller;
 
+import com.emiyaoj.common.utils.BaseContext;
 import com.emiyaoj.service.OjApplication;
 import com.emiyaoj.service.domain.dto.SubmitCodeDTO;
 import com.emiyaoj.service.domain.pojo.*;
@@ -66,6 +67,8 @@ public class OJIntegrationTest {
         if (problem != null) {
             problemId = problem.getId();
         }
+        BaseContext.setCurrentId(-1L); // 设置为系统用户提交
+
     }
 
     @Test
@@ -90,7 +93,6 @@ public class OJIntegrationTest {
         dto.setProblemId(problemId);
         dto.setLanguageId(cppLanguageId);
         dto.setCode(correctCode);
-
         Long submissionId = submissionService.submitCode(dto);
         assertNotNull(submissionId, "提交ID不应为空");
 
