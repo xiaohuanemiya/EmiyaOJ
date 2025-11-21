@@ -175,17 +175,7 @@ public class BlogController {
     @PreAuthorize("hasAuthority('COMMENT.LIST')")
     public ResponseResult<CommentVO> getComment(@PathVariable Long cid) {
         CommentVO vo = blogService.selectCommentById(cid);
-        return ResponseResult.fail("方法不支持");
-    }
-    
-    /**
-     * 修改评论（暂不支持）
-     */
-    @Deprecated
-    @PutMapping("/comments/{cid}")
-    @PreAuthorize("hasAuthority('COMMENT.EDIT')")
-    public ResponseResult<?> editComment(@PathVariable Long cid) {
-        return ResponseResult.fail("方法不支持");  // TODO: 修改已发表评论（管理员）
+        return vo != null ? ResponseResult.success(vo) : ResponseResult.fail(404, "未找到该评论");
     }
     
     /**

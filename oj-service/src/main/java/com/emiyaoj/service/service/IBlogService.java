@@ -34,14 +34,11 @@ public interface IBlogService extends IService<Blog> {
     
     PageVO<CommentVO> selectCommentPage(Long blogId, PageDTO pageDTO);
     
-    @Deprecated
     CommentVO selectCommentById(Long commentId);
     
-    @Deprecated
     List<CommentVO> selectComment(CommentQueryDTO queryDTO);
     
     boolean saveComment(Long blogId, BlogCommentSaveDTO blogCommentSaveDTO);
     
-    @Deprecated
     boolean deleteComment(Long commentId);
 }
