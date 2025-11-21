@@ -1,7 +1,7 @@
 // GoJudgeRequestBuilder.java
 package com.emiyaoj.service.util;
 
-import com.emiyaoj.service.domain.pojo.oj.Model.*;
+import com.emiyaoj.service.util.oj.Model.*;
 import lombok.experimental.UtilityClass;
 
 import java.util.*;

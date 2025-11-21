@@ -1,5 +1,5 @@
 // FileErrorType.java
-package com.emiyaoj.service.domain.pojo.oj.Enum;
+package com.emiyaoj.service.util.oj.Enum;
 
 import com.alibaba.fastjson.annotation.JSONCreator;
 import com.alibaba.fastjson.annotation.JSONField;

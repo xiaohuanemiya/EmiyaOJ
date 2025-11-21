@@ -1,5 +1,5 @@
 // BaseFile.java
-package com.emiyaoj.service.domain.pojo.oj.Model;
+package com.emiyaoj.service.util.oj.Model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;

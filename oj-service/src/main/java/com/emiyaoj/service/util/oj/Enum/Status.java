@@ -1,5 +1,5 @@
 // Status.java
-package com.emiyaoj.service.domain.pojo.oj.Enum;
+package com.emiyaoj.service.util.oj.Enum;
 
 import com.alibaba.fastjson.annotation.JSONCreator;
 import com.alibaba.fastjson.annotation.JSONField;
@@ -8,9 +8,7 @@ import com.alibaba.fastjson.parser.DefaultJSONParser;
 import com.alibaba.fastjson.parser.deserializer.ObjectDeserializer;
 
 
-import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.Arrays;
 
 import static com.alibaba.fastjson.parser.JSONToken.LITERAL_STRING;
 

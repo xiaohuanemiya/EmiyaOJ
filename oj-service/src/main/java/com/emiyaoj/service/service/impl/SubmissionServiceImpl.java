@@ -10,8 +10,8 @@ import com.emiyaoj.common.exception.BadRequestException;
 import com.emiyaoj.common.utils.BaseContext;
 import com.emiyaoj.service.domain.dto.SubmitCodeDTO;
 import com.emiyaoj.service.domain.pojo.*;
-import com.emiyaoj.service.domain.pojo.oj.Model.Request;
-import com.emiyaoj.service.domain.pojo.oj.Model.Result;
+import com.emiyaoj.service.util.oj.Model.Request;
+import com.emiyaoj.service.util.oj.Model.Result;
 import com.emiyaoj.service.domain.vo.SubmissionVO;
 import com.emiyaoj.service.mapper.SubmissionMapper;
 import com.emiyaoj.service.service.*;
@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * 提交记录Service实现
@@ -181,7 +180,7 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
         } else if ("C".equalsIgnoreCase(language.getName())) {
             compileRequest = GoJudgeRequestBuilder.buildCCompileRequest(sourceCode, outputName);
         } else {
-            throw new BadRequestException("不支持的编译语言: " + language.getName());
+            throw new BadRequestException("暂不支持的编译语言，请联系管理员: " + language.getName());
         }
         
         List<Result> compileResults = goJudgeService.execute(compileRequest);

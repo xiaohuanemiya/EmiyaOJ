@@ -1,7 +1,7 @@
 // Result.java
-package com.emiyaoj.service.domain.pojo.oj.Model;
+package com.emiyaoj.service.util.oj.Model;
 
-import com.emiyaoj.service.domain.pojo.oj.Enum.Status;
+import com.emiyaoj.service.util.oj.Enum.Status;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
