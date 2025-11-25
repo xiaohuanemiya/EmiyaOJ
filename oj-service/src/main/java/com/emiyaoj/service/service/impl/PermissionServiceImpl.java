@@ -67,7 +67,14 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
 
         Permission permission = new Permission();
         BeanUtils.copyProperties(saveDTO, permission);
-        permission.setParentId(saveDTO.getParentId() != null ? saveDTO.getParentId() : 0L);
+        if (saveDTO.getPermissionType()== 1){
+            permission.setPermissionType(PermissionTypeEnum.MENU);
+        } else if (saveDTO.getPermissionType()== 2){
+            permission.setPermissionType(PermissionTypeEnum.BUTTON);
+        } else if (saveDTO.getPermissionType()== 3){
+            permission.setPermissionType(PermissionTypeEnum.LINK);
+        }
+        permission.setParentId(saveDTO.getParentId() != null ? saveDTO.getParentId() : -1L);
         permission.setStatus(saveDTO.getStatus() != null ? saveDTO.getStatus() : 1);
         permission.setSortOrder(saveDTO.getSortOrder() != null ? saveDTO.getSortOrder() : 0);
         permission.setCreateTime(LocalDateTime.now());
