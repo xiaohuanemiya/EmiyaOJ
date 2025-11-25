@@ -57,14 +57,18 @@ EmiyaOJ/
          |   |       |   |--HelloController.java
          |   |       |   |--OperationLogController.java
          |   |       |   |--PermissionController.java
+         |   |       |   |--ProblemController.java
          |   |       |   |--RoleController.java
+         |   |       |   |--TestCaseController.java
          |   |       |   |--UserController.java
          |   |       |--domain/
          |   |       |   |--dto/
          |   |       |   |   |--PermissionQueryDTO.java
          |   |       |   |   |--PermissionSaveDTO.java
+         |   |       |   |   |--ProblemSaveDTO.java
          |   |       |   |   |--RoleQueryDTO.java
          |   |       |   |   |--RoleSaveDTO.java
+         |   |       |   |   |--TestCaseSaveDTO.java
          |   |       |   |   |--UserLoginDTO.java
          |   |       |   |   |--UserQueryDTO.java
          |   |       |   |   |--UserSaveDTO.java
@@ -79,26 +83,34 @@ EmiyaOJ/
          |   |       |   |   |--UserRole.java
          |   |       |   |--vo/
          |   |       |       |--PermissionVO.java
+         |   |       |       |--ProblemVO.java
          |   |       |       |--RoleVO.java
+         |   |       |       |--TestCaseVO.java
          |   |       |       |--UserLoginVO.java
          |   |       |       |--UserVO.java
          |   |       |--mapper/
          |   |       |   |--OperationLogMapper.java
          |   |       |   |--PermissionMapper.java
+         |   |       |   |--ProblemMapper.java
          |   |       |   |--RoleMapper.java
          |   |       |   |--RolePermissionMapper.java
+         |   |       |   |--TestCaseMapper.java
          |   |       |   |--UserMapper.java
          |   |       |   |--UserPermissionMapper.java
          |   |       |   |--UserRoleMapper.java
          |   |       |--service/
          |   |           |--IOperationLogService.java
          |   |           |--IPermissionService.java
+         |   |           |--IProblemService.java
          |   |           |--IRoleService.java
+         |   |           |--ITestCaseService.java
          |   |           |--IUserService.java
          |   |           |--impl/
          |   |               |--OperationLogServiceImpl.java
          |   |               |--PermissionServiceImpl.java
+         |   |               |--ProblemServiceImpl.java
          |   |               |--RoleServiceImpl.java
+         |   |               |--TestCaseServiceImpl.java
          |   |               |--UserDetailsServiceImpl.java
          |   |               |--UserServiceImpl.java
          |   |--resource/
@@ -160,4 +172,19 @@ EmiyaOJ/
 | `/permission/{id}`            | GET      |      |
 | `/permission/{id}`            | DELETE   |      |
 | `/permission/{id}/status`     | PUT      |      |
+| `/problem`                    | POST     | 新增题目 |
+| `/problem`                    | PUT      | 修改题目 |
+| `/problem/batch`              | DELETE   | 批量删除题目 |
+| `/problem/page`               | GET      | 分页查询题目 |
+| `/problem/{id}`               | GET      | 获取题目详情 |
+| `/problem/{id}`               | DELETE   | 删除题目 |
+| `/problem/{id}/status`        | PUT      | 修改题目状态 |
+| `/testcase`                   | POST     | 新增测试用例 |
+| `/testcase`                   | PUT      | 修改测试用例 |
+| `/testcase/batch`             | DELETE   | 批量删除测试用例 |
+| `/testcase/problem/{problemId}` | GET    | 根据题目ID获取测试用例列表 |
+| `/testcase/problem/{problemId}` | DELETE | 根据题目ID删除所有测试用例 |
+| `/testcase/{id}`              | GET      | 获取测试用例详情 |
+| `/testcase/{id}`              | DELETE   | 删除测试用例 |
+
 
