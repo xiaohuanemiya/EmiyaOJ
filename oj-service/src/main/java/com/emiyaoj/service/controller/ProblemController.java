@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -47,6 +48,7 @@ public class ProblemController {
     
     @Operation(summary = "新增题目")
     @PostMapping
+    @PreAuthorize("hasAuthority('PROBLEM.ADD')")
     public ResponseResult<Void> saveProblem(@RequestBody @Valid ProblemSaveDTO saveDTO) {
         boolean result = problemService.saveProblem(saveDTO);
         return result ? ResponseResult.success() : ResponseResult.fail("新增题目失败");
@@ -54,6 +56,7 @@ public class ProblemController {
     
     @Operation(summary = "修改题目")
     @PutMapping
+    @PreAuthorize("hasAuthority('PROBLEM.EDIT')")
     public ResponseResult<Void> updateProblem(@RequestBody @Valid ProblemSaveDTO saveDTO) {
         if (saveDTO.getId() == null) {
             return ResponseResult.fail("题目ID不能为空");
@@ -64,6 +67,7 @@ public class ProblemController {
     
     @Operation(summary = "删除题目")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('PROBLEM.DELETE')")
     public ResponseResult<Void> deleteProblem(@PathVariable Long id) {
         boolean result = problemService.deleteProblem(id);
         return result ? ResponseResult.success() : ResponseResult.fail("删除题目失败");
@@ -71,6 +75,7 @@ public class ProblemController {
     
     @Operation(summary = "批量删除题目")
     @DeleteMapping("/batch")
+    @PreAuthorize("hasAuthority('PROBLEM.DELETE')")
     public ResponseResult<Void> deleteProblems(@RequestBody List<Long> ids) {
         boolean result = problemService.deleteProblems(ids);
         return result ? ResponseResult.success() : ResponseResult.fail("批量删除题目失败");
@@ -78,6 +83,7 @@ public class ProblemController {
     
     @Operation(summary = "修改题目状态")
     @PutMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('PROBLEM.EDIT')")
     public ResponseResult<Void> updateProblemStatus(@PathVariable Long id, @RequestParam Integer status) {
         boolean result = problemService.updateProblemStatus(id, status);
         return result ? ResponseResult.success() : ResponseResult.fail("修改题目状态失败");
