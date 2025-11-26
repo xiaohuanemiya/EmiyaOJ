@@ -1,12 +1,13 @@
 use `emiya-oj`;
 
+# 密码均为123456
 insert into user(id, username, password, nickname, email, phone, avatar, create_by, update_by)
 values 
-    (10080, 'xiaowang', 123456, '小王', 'xiaowang@gmail.com', '12345678901', 'undefined', 1, 1),
-    (10081, 'xiaoli', 123456, '小李', 'xiaoli@gmail.com', '12345678901', 'undefined', 1, 1),
-    (10082, 'xiaoming', 123456, '小明', 'xiaoming@gmail.com', '12345678901', 'undefined', 1, 1),
-    (10083, 'xiaohong', 123456, '小红', 'xiaohong@gmail.com', '12345678901', 'undefined', 1, 1),
-    (10084, 'xiaozhang', 123456, '小张', 'xiaozhang@gmail.com', '12345678901', 'undefined', 1, 1);
+    (10080, 'xiaowang', '$2a$10$d.HySwYXfPV9atRubAMM6.FpXNgZ5BgOJOqhBUJThxKInyZ6zE/Jq', '小王', 'xiaowang@gmail.com', '12345678901', 'undefined', 1, 1),
+    (10081, 'xiaoli', '$2a$10$d.HySwYXfPV9atRubAMM6.FpXNgZ5BgOJOqhBUJThxKInyZ6zE/Jq', '小李', 'xiaoli@gmail.com', '12345678901', 'undefined', 1, 1),
+    (10082, 'xiaoming', '$2a$10$d.HySwYXfPV9atRubAMM6.FpXNgZ5BgOJOqhBUJThxKInyZ6zE/Jq', '小明', 'xiaoming@gmail.com', '12345678901', 'undefined', 1, 1),
+    (10083, 'xiaohong', '$2a$10$d.HySwYXfPV9atRubAMM6.FpXNgZ5BgOJOqhBUJThxKInyZ6zE/Jq', '小红', 'xiaohong@gmail.com', '12345678901', 'undefined', 1, 1),
+    (10084, 'xiaozhang', '$2a$10$d.HySwYXfPV9atRubAMM6.FpXNgZ5BgOJOqhBUJThxKInyZ6zE/Jq', '小张', 'xiaozhang@gmail.com', '12345678901', 'undefined', 1, 1);
 
 insert into user_role(id, user_id, role_id, create_by)
 values

@@ -1,5 +1,6 @@
 package com.emiyaoj.service.util;
 
+import com.emiyaoj.common.utils.BaseContext;
 import com.emiyaoj.service.domain.pojo.User;
 import com.emiyaoj.service.domain.pojo.UserLogin;
 import lombok.experimental.UtilityClass;
@@ -28,6 +29,7 @@ public class AuthUtils {
     
     public void setTestEnable(UserLogin ul) {
         testUserLogin = ul;  // 待扩展
+        BaseContext.setCurrentId(ul.getUser().getId());  // 由于修改了BaseContext使其能承担暂存用户关键信息的职责，此处要多一步存储保证向后兼容
         isTestEnvironment = true;
     }
     

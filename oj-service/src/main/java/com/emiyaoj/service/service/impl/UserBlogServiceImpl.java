@@ -43,7 +43,6 @@ public class UserBlogServiceImpl extends ServiceImpl<UserBlogMapper, UserBlog> i
     private final BlogMapper blogMapper;
     private final BlogStarMapper blogStarMapper;
     private final UserMapper userMapper;
-    private final UserBlogMapper userBlogMapper;
     
     @Override
     public UserBlogVO selectUserBlogById(Long id) {

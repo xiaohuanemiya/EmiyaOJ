@@ -15,7 +15,7 @@ create table if not exists user_blog
 create table if not exists blog
 (
     id          bigint       not null auto_increment primary key,
-    user_id     bigint,
+    user_id     bigint       not null,
     title       varchar(255) not null,
     content     text         not null,
     create_time datetime     not null default CURRENT_TIMESTAMP,
@@ -134,5 +134,37 @@ BEGIN
     UPDATE user_blog
     SET star_count = GREATEST(star_count - 1, 0)
     WHERE user_id = OLD.user_id;
+END$$
+DELIMITER ;
+
+-- 创建触发器：当user表的username更新时，同步更新user_blog表
+DELIMITER $$
+CREATE TRIGGER after_user_username_update
+    AFTER UPDATE
+    ON user
+    FOR EACH ROW
+BEGIN
+    -- 检查username是否发生变化且不为空
+    IF NEW.username <> OLD.username AND NEW.username IS NOT NULL THEN
+        UPDATE user_blog
+        SET username = NEW.username
+        WHERE user_id = NEW.id;
+    END IF;
+END$$
+DELIMITER ;
+
+-- 创建触发器：当user表的nickname更新时，同步更新user_blog表
+DELIMITER $$
+CREATE TRIGGER after_user_nickname_update
+    AFTER UPDATE
+    ON user
+    FOR EACH ROW
+BEGIN
+    -- 检查nickname是否发生变化且不为空
+    IF NEW.nickname <> OLD.nickname AND NEW.nickname IS NOT NULL THEN
+        UPDATE user_blog
+        SET nickname = NEW.nickname
+        WHERE user_id = NEW.id;
+    END IF;
 END$$
 DELIMITER ;

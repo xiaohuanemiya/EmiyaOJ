@@ -40,5 +40,14 @@ public interface IBlogService extends IService<Blog> {
     
     boolean saveComment(Long blogId, BlogCommentSaveDTO blogCommentSaveDTO);
     
-    boolean deleteComment(Long commentId);
+    /**
+     * 以响应码的形式返回操作结果
+     * <ul>
+     *     <li>200: ok</li>
+     *     <li>404: 评论不存在</li>
+     *     <li>403: 权限不足</li>
+     *     <li>500: 服务器错误</li>
+     * </ul>
+     */
+    int deleteComment(Long commentId);
 }

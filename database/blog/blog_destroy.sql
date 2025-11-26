@@ -18,6 +18,8 @@ drop trigger after_blog_insert;
 drop trigger after_blog_delete;
 drop trigger after_blog_star_insert;
 drop trigger after_blog_star_delete;
+drop trigger after_user_username_update;
+drop trigger after_user_nickname_update;
 
 delete from user_role
 where id in (11080, 11081, 11082, 11083, 11084, 11085);

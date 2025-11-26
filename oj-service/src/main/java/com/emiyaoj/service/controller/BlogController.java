@@ -7,6 +7,8 @@ import com.emiyaoj.service.domain.dto.*;
 import com.emiyaoj.service.domain.vo.*;
 import com.emiyaoj.service.service.IBlogService;
 import com.emiyaoj.service.service.IUserBlogService;
+import com.emiyaoj.service.util.AuthUtils;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +38,7 @@ public class BlogController {
     @PostMapping("")
     @PreAuthorize("hasAuthority('BLOG.ADD')")
     public ResponseResult<?> addBlog(@RequestBody BlogSaveDTO blogSaveDTO) {
+        if (blogSaveDTO.getUserId() == null) blogSaveDTO.setUserId(AuthUtils.getUserId());  // 获取当前userId
         boolean success = blogService.saveBlog(blogSaveDTO);
         return success ? ResponseResult.success() : ResponseResult.fail("添加失败");
     }
@@ -46,6 +49,7 @@ public class BlogController {
     @PostMapping("/query")
     @PreAuthorize("hasAuthority('BLOG.LIST')")
     public ResponseResult<PageVO<BlogVO>> queryBlog(@RequestBody BlogQueryDTO blogQueryDTO) {
+        if (blogQueryDTO.getUserId() == null) blogQueryDTO.setUserId(AuthUtils.getUserId());
         PageVO<BlogVO> vos = blogService.select(blogQueryDTO);
         return ResponseResult.success(vos);
     }
@@ -77,6 +81,7 @@ public class BlogController {
     @PreAuthorize("hasAuthority('BLOG.EDIT')")
     public ResponseResult<?> editBlog(@PathVariable Long bid, @RequestBody BlogEditDTO blogEditDTO) {
         blogEditDTO.setId(bid);
+        if (blogEditDTO.getUserId() == null) blogEditDTO.setUserId(AuthUtils.getUserId());  // 兼容前端不缓存userId的情况
         if (blogEditDTO.getTitle().isBlank()) blogEditDTO.setTitle(null);
         if (blogEditDTO.getContent().isBlank()) blogEditDTO.setContent(null);
         boolean success = blogService.editBlog(blogEditDTO);
@@ -86,7 +91,7 @@ public class BlogController {
     /**
      * 查评论
      */
-    @GetMapping("/{bid}/comments")
+    @PostMapping("/{bid}/comments/query")
     @PreAuthorize("hasAuthority('COMMENT.LIST')")
     public ResponseResult<PageVO<CommentVO>> selectCommentPage(@PathVariable Long bid,
                                                                @RequestBody PageDTO pageDTO) {
@@ -100,6 +105,7 @@ public class BlogController {
     @PostMapping("/{bid}/comments")
     @PreAuthorize("hasAuthority('COMMENT.ADD')")
     public ResponseResult<?> addComment(@PathVariable Long bid, @RequestBody BlogCommentSaveDTO blogCommentSaveDTO) {
+        blogCommentSaveDTO.setUserId(AuthUtils.getUserId());
         boolean success = blogService.saveComment(bid, blogCommentSaveDTO);
         return success ? ResponseResult.success() : ResponseResult.fail("添加失败");
     }
@@ -114,6 +120,9 @@ public class BlogController {
         return success ? ResponseResult.success() : ResponseResult.fail("收藏失败");
     }
     
+    /**
+     * 用户取消收藏博客
+     */
     @DeleteMapping("/{bid}/star")
     @PreAuthorize("hasAuthority('BLOG.STAR')")
     public ResponseResult<?> unstarBlog(@PathVariable Long bid) {
@@ -135,7 +144,7 @@ public class BlogController {
     /**
      * 分页条件查用户发表的博客
      */
-    @PostMapping("/user/{uid}/blogs")
+    @PostMapping("/user/{uid}/blogs/query")
     @PreAuthorize("hasAuthority('BLOG.LIST')")
     public ResponseResult<PageVO<BlogVO>> userBlogBlogs(@PathVariable Long uid, @RequestBody UserBlogBlogsQueryDTO blogsQueryDTO) {
         blogsQueryDTO.setUserId(uid);
@@ -146,8 +155,7 @@ public class BlogController {
     /**
      * 分页条件查用户收藏的博客
      */
-    @Deprecated
-    @PostMapping("/user/{uid}/stars")
+    @PostMapping("/user/{uid}/stars/query")
     @PreAuthorize("hasAuthority('BLOG.LIST')")
     public ResponseResult<PageVO<BlogVO>> userBlogStars(@PathVariable Long uid, @RequestBody UserBlogStarsQueryDTO starsQueryDTO) {
         starsQueryDTO.setUserId(uid);
@@ -166,9 +174,9 @@ public class BlogController {
     }
     
     /**
-     * 查评论（待修改）
+     * 查评论
      */
-    @PostMapping("/comments")
+    @PostMapping("/comments/query")
     @PreAuthorize("hasAuthority('COMMENT.LIST')")
     public ResponseResult<List<CommentVO>> queryComments(@RequestBody CommentQueryDTO queryDTO) {
         List<CommentVO> comments = blogService.selectComment(queryDTO);
@@ -176,7 +184,7 @@ public class BlogController {
     }
     
     /**
-     * 获取指定评论（待修改）
+     * 获取指定评论
      */
     @GetMapping("/comments/{cid}")
     @PreAuthorize("hasAuthority('COMMENT.LIST')")
@@ -186,13 +194,17 @@ public class BlogController {
     }
     
     /**
-     * 删除评论（待完善）
+     * 删除评论
      */
-    @Deprecated
     @DeleteMapping("/comments/{cid}")
     @PreAuthorize("hasAuthority('COMMENT.DELETE')")
     public ResponseResult<?> deleteComment(@PathVariable Long cid) {
-        boolean success = blogService.deleteComment(cid);
-        return success ? ResponseResult.success() : ResponseResult.fail("删除失败");
+        int code = blogService.deleteComment(cid);
+        return switch (code) {
+            case HttpServletResponse.SC_OK -> ResponseResult.success();
+            case HttpServletResponse.SC_NOT_FOUND -> ResponseResult.fail(404, "未找到该评论");
+            case HttpServletResponse.SC_UNAUTHORIZED -> ResponseResult.fail(401, "权限不足");
+            default -> ResponseResult.fail(500, "服务器错误");
+        };
     }
 }

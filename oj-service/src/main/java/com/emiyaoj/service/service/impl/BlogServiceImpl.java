@@ -13,6 +13,7 @@ import com.emiyaoj.service.domain.vo.CommentVO;
 import com.emiyaoj.service.mapper.*;
 import com.emiyaoj.service.service.IBlogService;
 import com.emiyaoj.service.util.AuthUtils;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -41,8 +42,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     private final BlogCommentMapper blogCommentMapper;
     private final BlogPictureMapper blogPictureMapper;
     private final UserBlogMapper userBlogMapper;
-    private final UserRoleMapper userRoleMapper;
-    private final RoleMapper roleMapper;
     private final UserMapper userMapper;
     
     @Override
@@ -118,9 +117,10 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         Long blogId = editDTO.getId();
         
         boolean isAccessibleOperation = AuthUtils.checkAnyRoleThenUserLogin(userLogin -> {
+            if (blogId == null) return false;
             Long userId = userLogin.getUser().getId();
-            Blog blog = this.getById(userId);
-            return blog.getUserId().equals(userId);
+            Blog blog = this.getById(blogId);
+            return blog != null && blog.getUserId().equals(userId);
         }, "ROLE_ADMIN", "ROLE_MANAGER");
         
         return isAccessibleOperation &&
@@ -164,6 +164,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     
     @Override
     public List<CommentVO> selectComment(CommentQueryDTO queryDTO) {
+        // TODO: 可能要加上分页查
         LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<BlogComment>()
                                                   .eq(BlogComment::getDeleted, 0)
                                                   .eq(queryDTO.getBlogId() != null, BlogComment::getBlogId, queryDTO.getBlogId())
@@ -176,7 +177,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     
     @Override
     public boolean saveComment(Long blogId, BlogCommentSaveDTO blogCommentSaveDTO) {
-        Long userId = AuthUtils.getUserId();
+        Long userId = blogCommentSaveDTO.getUserId();
         if (userId == null) return false;
         BlogComment blogComment = new BlogComment(null, blogId, userId, blogCommentSaveDTO.getContent(), LocalDateTime.now(), LocalDateTime.now(), 0);
         int i = blogCommentMapper.insert(blogComment);
@@ -184,16 +185,22 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     }
     
     @Override
-    public boolean deleteComment(Long commentId) {
-        BlogComment blogComment = blogCommentMapper.selectById(commentId);
-        Long blogId = blogComment.getBlogId();
-        Blog blog = this.getById(blogId);
-        Long fromUserId = blog.getUserId();
-        boolean accessibleOperation = AuthUtils.checkAnyRoleThenUserLogin(ul -> ul.getUser().getId().equals(fromUserId), "ROLE_MANAGER", "ROLE_ADMIN");
-        if (accessibleOperation) {
+    public int deleteComment(Long commentId) {
+        try {
+            // 检查操作者是不是当前博客发布者或管理员
+            BlogComment blogComment = blogCommentMapper.selectById(commentId);
+            if (blogComment == null) return HttpServletResponse.SC_NOT_FOUND;  // 不存在指定评论
+            Long blogId = blogComment.getBlogId();
+            Blog blog = this.getById(blogId);
+            Long fromUserId = blog.getUserId();
+            boolean accessibleOperation = AuthUtils.checkAnyRoleThenUserLogin(ul -> ul.getUser().getId().equals(fromUserId), "ROLE_MANAGER", "ROLE_ADMIN");
+            if (!accessibleOperation) return HttpServletResponse.SC_FORBIDDEN;
             blogCommentMapper.deleteById(commentId);
+            return HttpServletResponse.SC_OK;
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+            return HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
         }
-        return accessibleOperation;
     }
     
     private BlogVO convertBlogToVO(Blog blog) {

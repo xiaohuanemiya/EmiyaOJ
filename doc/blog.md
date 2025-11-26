@@ -4,26 +4,25 @@
 
 列表
 
-| 路由                     | 请求方法 | 功能说明                                                     |
-| ------------------------ | -------- | ------------------------------------------------------------ |
-| `/blog`                  | GET      | 查全部，暂时不用                                             |
-| `/blog`                  | POST     | 添加博客                                                     |
-| `/blog/query`            | POST     | **分页**按**给定信息**查询                                   |
-| `/blog/{bid}`            | GET      | 查某一博客基本信息                                           |
-| `/blog/{bid}`            | DELETE   | 删除博客，仅对**管理员**和**话题创建者**开放权限             |
-| `/blog/{bid}`            | PUT      | 编辑博客基础信息，权限管理同上                               |
-| `/blog/{bid}/comments`   | GET      | 以**表单**的形式提交实现分页查询（抄的百度贴吧）             |
-| `/blog/{bid}/comments`   | POST     | 发表评论                                                     |
-| `/blog/{bid}/star`       | POST     | 收藏博客，需要**用户登录**                                   |
-| `/blog/{bid}/star`       | DELETE   | 取消收藏博客                                                 |
-| `/blog/user/{uid}`       | GET      | 查询指定作者发起的所有博客，暂时不用                         |
-| `/blog/user/{uid}/blogs` | POST     | **分页**按**给定信息**查询指定作者发起的博客                 |
-| `/blog/user/{uid}/star`  | POST     | 分页查用户收藏博客（**暂时不支持**）                         |
-| `/blog/tags`             | GET      | 获取所有标签。因为由管理员规定，所以暂时不考虑分页           |
-| `/blog/comments`         | POST     | 条件查所有评论（**不支持**）                                 |
-| `/blog/comments/{cid}`   | GET      | 获取指定评论（**不支持**）                                   |
-| `/blog/comments/{cid}`   | PUT      | 修改已发表评论（**不支持**）                                 |
-| `/blog/comments/{cid}`   | DELETE   | 删除评论，仅对**管理员**和**话题创建者**开放权限；<br />可以考虑使用AI智能检测评论 |
+| 路由                           | 请求方法 | 功能说明                                                     |
+| ------------------------------ | -------- | ------------------------------------------------------------ |
+| `/blog`                        | GET      | 查全部，暂时不用                                             |
+| `/blog`                        | POST     | 添加博客                                                     |
+| `/blog/query`                  | POST     | **分页**按**给定信息**查询                                   |
+| `/blog/{bid}`                  | GET      | 查某一博客基本信息                                           |
+| `/blog/{bid}`                  | DELETE   | 删除博客，仅对**管理员**和**话题创建者**开放权限             |
+| `/blog/{bid}`                  | PUT      | 编辑博客基础信息，权限管理同上                               |
+| `/blog/{bid}/comments/query`   | POST     | 分页查询                                                     |
+| `/blog/{bid}/comments`         | POST     | 发表评论                                                     |
+| `/blog/{bid}/star`             | POST     | 收藏博客，需要**用户登录**                                   |
+| `/blog/{bid}/star`             | DELETE   | 取消收藏博客                                                 |
+| `/blog/user/{uid}`             | GET      | 查询指定作者发起的所有博客，暂时不用                         |
+| `/blog/user/{uid}/blogs/query` | POST     | **分页**按**给定信息**查询指定作者发起的博客                 |
+| `/blog/user/{uid}/stars/query` | POST     | 分页查用户收藏博客                                           |
+| `/blog/tags`                   | GET      | 获取所有标签。因为由管理员规定，所以暂时不考虑分页           |
+| `/blog/comments/query`         | POST     | 条件查评论                                                   |
+| `/blog/comments/{cid}`         | GET      | 获取指定评论                                                 |
+| `/blog/comments/{cid}`         | DELETE   | 删除评论，仅对**管理员**和**话题创建者**开放权限；<br />可以考虑使用AI智能检测评论 |
 
 树状图
 
@@ -31,17 +30,19 @@
 /blog  # GET, POST
  |--/query  # 条件分页查
  |--/{bid}  # 博客操作
- |   |--/comments  # 博客查、评论
+ |   |--/comments  # 发表评论
+ |       |--/query  # 条件查评论
  |   |--/star  # 收藏/取消收藏博客，需要用户登录
  |--/user/{uid}  # 查用户
- |   |--/blogs  # 分页查用户发表博客
- |   |--/star  # 分页查用户收藏博客
+ |   |--/blogs/query  # 分页查用户发表博客
+ |   |--/star/query  # 分页查用户收藏博客
  |--/tags  # 获取所有标签
  |--/comments  # 条件查评论，给管理员开放的接口
+     |--/query  # 条件查评论
      |--/{cid}  # 评论操作，偏系统管理方向
 ```
 
-
+需要重新强调的是：两个相似接口`/blog/{bid}/comments`和`/blog/comments/{cid}`中，前者适合生产环境下使用，后者需要配合超管账号进行调试
 
 ## 数据库设计
 
@@ -88,7 +89,7 @@ create table if not exists user_blog
 create table if not exists blog
 (
     id          bigint       not null auto_increment primary key,
-    user_id     bigint,
+    user_id     bigint       not null,
     title       varchar(255) not null,
     content     text         not null,
     create_time datetime     not null default CURRENT_TIMESTAMP,
@@ -207,6 +208,38 @@ BEGIN
     UPDATE user_blog
     SET star_count = GREATEST(star_count - 1, 0)
     WHERE user_id = OLD.user_id;
+END$$
+DELIMITER ;
+
+-- 创建触发器：当user表的username更新时，同步更新user_blog表
+DELIMITER $$
+CREATE TRIGGER after_user_username_update
+    AFTER UPDATE
+    ON user
+    FOR EACH ROW
+BEGIN
+    -- 检查username是否发生变化且不为空
+    IF NEW.username <> OLD.username AND NEW.username IS NOT NULL THEN
+        UPDATE user_blog
+        SET username = NEW.username
+        WHERE user_id = NEW.id;
+    END IF;
+END$$
+DELIMITER ;
+
+-- 创建触发器：当user表的nickname更新时，同步更新user_blog表
+DELIMITER $$
+CREATE TRIGGER after_user_nickname_update
+    AFTER UPDATE
+    ON user
+    FOR EACH ROW
+BEGIN
+    -- 检查nickname是否发生变化且不为空
+    IF NEW.nickname <> OLD.nickname AND NEW.nickname IS NOT NULL THEN
+        UPDATE user_blog
+        SET nickname = NEW.nickname
+        WHERE user_id = NEW.id;
+    END IF;
 END$$
 DELIMITER ;
 ```

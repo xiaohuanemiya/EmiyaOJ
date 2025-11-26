@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BlogQueryDTO {
-    @NotNull
+    // 由后端解析并自动填充
     private Long userId;
     
     // 模糊搜索，为空默认查全部
