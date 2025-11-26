@@ -372,4 +372,3 @@ delete from blog where deleted=1;
   具体形式：前端先上传文件，后端返回url，前端显示出html表示的图片。之后评论完成后后端以html的形式存储
   
 - 评论时考虑markdown渲染（？）
-
