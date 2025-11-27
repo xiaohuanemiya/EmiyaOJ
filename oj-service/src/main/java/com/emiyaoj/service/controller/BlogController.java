@@ -8,6 +8,7 @@ import com.emiyaoj.service.domain.vo.*;
 import com.emiyaoj.service.service.IBlogService;
 import com.emiyaoj.service.service.IUserBlogService;
 import com.emiyaoj.service.util.AuthUtils;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "博客管理")
 @RestController
 @RequestMapping("/blog")
 @RequiredArgsConstructor

@@ -1,12 +1,19 @@
 package com.emiyaoj.service.controller;
 
+import com.alibaba.fastjson2.JSON;
+import com.emiyaoj.common.constant.JwtClaimsConstant;
 import com.emiyaoj.common.domain.ResponseResult;
+import com.emiyaoj.common.properties.JwtProperties;
 import com.emiyaoj.common.utils.BaseContext;
+import com.emiyaoj.common.utils.JwtUtil;
 import com.emiyaoj.common.utils.RedisUtil;
 import com.emiyaoj.service.domain.dto.UserLoginDTO;
+import com.emiyaoj.service.domain.pojo.UserLogin;
 import com.emiyaoj.service.domain.vo.UserLoginVO;
 import com.emiyaoj.service.service.IUserService;
+import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +24,7 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "登录管理")
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -26,10 +34,36 @@ public class AuthController {
 
     private final IUserService userService;
     private final RedisUtil redisUtil;
+    private final JwtProperties jwtProperties;
 
     @PostMapping("/login")
-    public ResponseResult<UserLoginVO> login(@RequestBody UserLoginDTO loginDTO){
+    public ResponseResult<UserLoginVO> login(@RequestBody UserLoginDTO loginDTO, HttpServletRequest request){
         log.info("登录请求: {}", loginDTO);
+        
+        // 检查请求头中是否已存在token
+        String existingToken = request.getHeader("Authorization");
+        if (!ObjectUtils.isEmpty(existingToken)) {
+            // 去掉前缀 "Bearer "
+            if (existingToken.startsWith("Bearer ")) {
+                existingToken = existingToken.substring(7);
+            }
+            
+            // 验证现有token是否仍然有效
+            try {
+                Claims claims = JwtUtil.parseJWT(jwtProperties.getSecretKey(), existingToken);
+                String loginUserString = claims.get(JwtClaimsConstant.USER_LOGIN).toString();
+                UserLogin existingUserLogin = JSON.parseObject(loginUserString, UserLogin.class);
+                
+                // 检查Redis中是否存在该token
+                if (redisUtil.hasKey("token_" + existingUserLogin.getUser().getId())) {
+                    // 如果现有token仍然有效，可以直接返回或提示用户
+                    log.warn("用户 {} 尝试登录，但已有有效token", existingUserLogin.getUser().getId());
+                    return ResponseResult.fail(409, "用户已登录");
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        
         UserLoginVO loginVO = userService.login(loginDTO);
         return ResponseResult.success(loginVO);
     }
@@ -47,12 +81,32 @@ public class AuthController {
         if (ObjectUtils.isEmpty(token)) { // header没有token
             token = request.getParameter("Authorization");
         }
+        
+        // 去掉前缀 "Bearer "
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             // 清除上下文
             new SecurityContextLogoutHandler().logout(request, response, authentication);
-            // 清理redis
-            redisUtil.delete("token_" + token);
+//            // 清理redis
+//            redisUtil.delete("token_" + token);
+            
+            // 如果有token，则从Redis中删除对应用户ID的token记录
+            if (!ObjectUtils.isEmpty(token)) {
+                try {
+                    Claims claims = JwtUtil.parseJWT(jwtProperties.getSecretKey(), token);
+                    String loginUserString = claims.get(JwtClaimsConstant.USER_LOGIN).toString();
+                    UserLogin userLogin = JSON.parseObject(loginUserString, UserLogin.class);
+                    // 使用用户ID作为key删除token
+                    redisUtil.delete("token_" + userLogin.getUser().getId());
+                } catch (Exception e) {
+                    log.warn("Failed to parse token during logout: {}", e.getMessage());
+                }
+            }
+            
             // 清理ThreadLocal
             BaseContext.remove();
 

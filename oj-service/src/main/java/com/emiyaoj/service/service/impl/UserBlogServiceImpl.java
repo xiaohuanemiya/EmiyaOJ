@@ -72,7 +72,7 @@ public class UserBlogServiceImpl extends ServiceImpl<UserBlogMapper, UserBlog> i
     @Override
     public PageVO<BlogVO> selectUserBlogStars(UserBlogStarsQueryDTO queryDTO) {
         Page<BlogStar> page = new PageDTO(queryDTO.getPageNo(), queryDTO.getPageSize(), null, null)  // 转化为DTO
-                              .toMpPageDefaultSortByUpdateTimeDesc();  // 转化为Page
+                              .toMpPageDefaultSortByCreateTimeDesc();  // 转化为Page
         // Page + 条件查
         blogStarMapper.selectPage(page, new LambdaQueryWrapper<BlogStar>()
                                         .eq(BlogStar::getUserId, queryDTO.getUserId()));

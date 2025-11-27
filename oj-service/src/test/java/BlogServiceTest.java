@@ -1,4 +1,5 @@
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.emiyaoj.common.domain.PageDTO;
 import com.emiyaoj.common.domain.PageVO;
 import com.emiyaoj.service.OjApplication;
@@ -56,6 +57,7 @@ public class BlogServiceTest {
     @Resource
     private UserBlogMapper userBlogMapper;
     
+    private static final boolean CASE = false;  // 仅在启用时插入测试类中的自定义数据
     private static final boolean FLUSH = true;  // 每次测试完成后将数据库中逻辑删除的博客进行物理删除
     
     static User testUser = new User(25565L, "test user", "123456", "测试用户", "123@java.com", "13800000000", "avatar", 1, 0, LocalDateTime.now(), LocalDateTime.now(), 1L, 1L);
@@ -73,31 +75,35 @@ public class BlogServiceTest {
         List.of("ROLE_USER", "ROLE_ADMIN", "ROLE_MANAGER")
         ));
         
-        userMapper.insert(testUser);
+        if (CASE) {
+            userMapper.insert(testUser);
 //        userBlogMapper.insert(new UserBlog(testUser.getId(), testUser.getUsername(), testUser.getNickname(), 0, 0, LocalDateTime.now()));
-        
+
 //        service.saveBatch(List.of(DEFAULT_BLOG_1, DEFAULT_BLOG_2));
-        blogMapper.insert(DEFAULT_BLOG_1.setId(null));
-        blogMapper.insert(DEFAULT_BLOG_2.setId(null));
-        blogTagMapper.insert(DEFAULT_BLOG_TAG_1.setId(null));
-        
-        blogTagAssociationMapper.insert(new BlogTagAssociation(null, DEFAULT_BLOG_1.getId(), DEFAULT_BLOG_TAG_1.getId()));
-        blogTagAssociationMapper.insert(new BlogTagAssociation(null, DEFAULT_BLOG_2.getId(), DEFAULT_BLOG_TAG_1.getId()));
+            blogMapper.insert(DEFAULT_BLOG_1.setId(null));
+            blogMapper.insert(DEFAULT_BLOG_2.setId(null));
+            blogTagMapper.insert(DEFAULT_BLOG_TAG_1.setId(null));
+            
+            blogTagAssociationMapper.insert(new BlogTagAssociation(null, DEFAULT_BLOG_1.getId(), DEFAULT_BLOG_TAG_1.getId()));
+            blogTagAssociationMapper.insert(new BlogTagAssociation(null, DEFAULT_BLOG_2.getId(), DEFAULT_BLOG_TAG_1.getId()));
+        }
     }
     
     @AfterEach
     void after() {
-        blogMapper.delete(new LambdaQueryWrapper<Blog>().in(Blog::getId, DEFAULT_BLOG_1.getId(), DEFAULT_BLOG_2.getId()));
-        blogTagAssociationMapper.delete(new LambdaQueryWrapper<BlogTagAssociation>().in(BlogTagAssociation::getBlogId, DEFAULT_BLOG_1.getId(), DEFAULT_BLOG_2.getId()));
-        blogTagMapper.delete(new LambdaQueryWrapper<BlogTag>().in(BlogTag::getId, DEFAULT_BLOG_TAG_1.getId()));
-        
-        userBlogMapper.deleteById(testUser.getId());
-        userMapper.deleteById(testUser);
-        
-        if (FLUSH) {
-            blogService.remove(new LambdaQueryWrapper<Blog>().eq(Blog::getDeleted, 1));
-            blogCommentMapper.delete(new LambdaQueryWrapper<BlogComment>().eq(BlogComment::getDeleted, 1));
-            blogStarMapper.delete(new LambdaQueryWrapper<BlogStar>().eq(BlogStar::getDeleted, 1));
+        if (CASE) {
+            blogMapper.delete(new LambdaQueryWrapper<Blog>().in(Blog::getId, DEFAULT_BLOG_1.getId(), DEFAULT_BLOG_2.getId()));
+            blogTagAssociationMapper.delete(new LambdaQueryWrapper<BlogTagAssociation>().in(BlogTagAssociation::getBlogId, DEFAULT_BLOG_1.getId(), DEFAULT_BLOG_2.getId()));
+            blogTagMapper.delete(new LambdaQueryWrapper<BlogTag>().in(BlogTag::getId, DEFAULT_BLOG_TAG_1.getId()));
+            
+            userBlogMapper.deleteById(testUser.getId());
+            userMapper.deleteById(testUser);
+            
+            if (FLUSH) {
+                blogService.remove(new LambdaQueryWrapper<Blog>().eq(Blog::getDeleted, 1));
+                blogCommentMapper.delete(new LambdaQueryWrapper<BlogComment>().eq(BlogComment::getDeleted, 1));
+                blogStarMapper.delete(new LambdaQueryWrapper<BlogStar>().eq(BlogStar::getDeleted, 1));
+            }
         }
     }
     
@@ -205,7 +211,7 @@ public class BlogServiceTest {
     
     @Test
     void testSaveComment() {
-        BlogCommentSaveDTO saveDTO = new BlogCommentSaveDTO("测试类测试评论");
+        BlogCommentSaveDTO saveDTO = new BlogCommentSaveDTO(10080L, "测试类测试评论");
         boolean save = blogService.saveComment(15081L, saveDTO);
         debug("插入结果", save);
         
@@ -218,7 +224,7 @@ public class BlogServiceTest {
             Assertions.fail("评论数量不为1");
             return;
         }
-        boolean delete = blogService.deleteComment(commentVOS.getFirst().getId());
+        int delete = blogService.deleteComment(commentVOS.getFirst().getId());
         debug("删除结果", delete);
     }
     
@@ -249,12 +255,34 @@ public class BlogServiceTest {
     
     void debug(String title, Object object) {
         System.err.println("Title: " + title);
-        if (object instanceof Collection<?> c) {
+        if (object == null) {
+        } else if (object instanceof Collection<?> c) {
             c.forEach(o -> System.err.println("- " + o));
         } else if (object instanceof Object[]) {
             Arrays.stream((Object[]) object).forEach(o -> System.err.println("- " + o));
         } else {
             System.err.println(object);
         }
+    }
+    
+    @Test
+    void testPageQuery() {
+//        UserBlogBlogsQueryDTO blogsQueryDTO = new UserBlogBlogsQueryDTO(10080L, 1, 10);
+//        PageVO<BlogVO> blogVOPageVO = userBlogService.selectUserBlogBlogs(blogsQueryDTO);
+//        debug("查询总数", blogVOPageVO.getTotal());
+//        debug("当前页数", blogVOPageVO.getPages());
+//        debug("查询列表", blogVOPageVO.getList());
+        
+        Page<Blog> page = new PageDTO(2, 1, null, null).toMpPageDefaultSortByUpdateTimeDesc();
+        debug("查之前", null);
+        debug("总数", page.getTotal());
+        blogMapper.selectPage(page, new LambdaQueryWrapper<Blog>()
+                                    .eq(Blog::getUserId, 10080L)
+                                    .eq(Blog::getDeleted, 0));
+        debug("查之后", null);
+        debug("总数", page.getTotal());
+        debug("页数", page.getCurrent());
+        debug("每页数量", page.getSize());
+        debug("列表", page.getRecords());
     }
 }
