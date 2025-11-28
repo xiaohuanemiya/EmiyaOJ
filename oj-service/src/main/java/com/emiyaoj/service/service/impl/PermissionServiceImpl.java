@@ -67,14 +67,8 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
 
         Permission permission = new Permission();
         BeanUtils.copyProperties(saveDTO, permission);
-        if (saveDTO.getPermissionType()== 1){
-            permission.setPermissionType(PermissionTypeEnum.MENU);
-        } else if (saveDTO.getPermissionType()== 2){
-            permission.setPermissionType(PermissionTypeEnum.BUTTON);
-        } else if (saveDTO.getPermissionType()== 3){
-            permission.setPermissionType(PermissionTypeEnum.LINK);
-        }
-        permission.setParentId(saveDTO.getParentId() != null ? saveDTO.getParentId() : -1L);
+        permission.setPermissionType(convertPermissionType(saveDTO.getPermissionType()));  // TODO: 优化权限类型转化
+        permission.setParentId(saveDTO.getParentId() != null ? saveDTO.getParentId() : 0L);
         permission.setStatus(saveDTO.getStatus() != null ? saveDTO.getStatus() : 1);
         permission.setSortOrder(saveDTO.getSortOrder() != null ? saveDTO.getSortOrder() : 0);
         permission.setCreateTime(LocalDateTime.now());
@@ -98,6 +92,7 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
 
         Permission permission = new Permission();
         BeanUtils.copyProperties(saveDTO, permission);
+        permission.setPermissionType(convertPermissionType(saveDTO.getPermissionType()));  // TODO: 优化权限类型转化
         permission.setUpdateTime(LocalDateTime.now());
 
         return this.updateById(permission);
@@ -283,5 +278,15 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
         permissionVO.setStatusDesc(permission.getStatus() == 1 ? "启用" : "禁用");
 
         return permissionVO;
+    }
+    
+    // vo -> pojo
+    private PermissionTypeEnum convertPermissionType(Integer voType) {
+        return switch (voType) {
+            case 1 -> PermissionTypeEnum.MENU;
+            case 2 -> PermissionTypeEnum.BUTTON;
+            case 3 -> PermissionTypeEnum.LINK;
+            default -> throw new RuntimeException("非法的枚举类型");  // TODO: 异常类型待确定
+        };
     }
 }
