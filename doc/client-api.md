@@ -773,13 +773,14 @@ export interface JwtPayload {
 
 /**
  * 用户登录信息（Token解析后）
+ * 注意：虽然Token中可能包含password字段，但前端不应使用
  */
 export interface UserLoginInfo {
   accountNonExpired: boolean;
   accountNonLocked: boolean;
   credentialsNonExpired: boolean;
   enabled: boolean;
-  password: string;
+  // password 字段已省略，前端不应访问或存储密码信息
   permissions: string[];
   roles: string[];
   user: User;
@@ -788,13 +789,14 @@ export interface UserLoginInfo {
 
 /**
  * 用户详细信息
+ * 注意：password 字段在Token中虽存在但前端不应使用，此处为完整性保留
  */
 export interface User {
   createTime: string;
   deleted: number;
   id: number;
   nickname: string;
-  password: string;
+  // password 字段已省略，前端不应访问或存储密码信息
   status: number;
   updateTime: string;
   username: string;
@@ -958,7 +960,8 @@ instance.interceptors.response.use(
       // 处理业务错误
       return Promise.reject(new Error(data.msg));
     }
-    return response;
+    // 直接返回 data，与API函数返回类型保持一致
+    return data as any;
   },
   (error) => Promise.reject(error)
 );
