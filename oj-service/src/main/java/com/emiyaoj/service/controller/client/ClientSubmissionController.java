@@ -1,4 +1,4 @@
-package com.emiyaoj.service.controller;
+package com.emiyaoj.service.controller.client;
 
 import com.emiyaoj.common.domain.PageDTO;
 import com.emiyaoj.common.domain.PageVO;
@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "提交管理")
 @RestController
-@RequestMapping("/submission")
-public class SubmissionController {
+@RequestMapping("/client/submission")
+public class ClientSubmissionController {
 
     @Autowired
     private ISubmissionService submissionService;
