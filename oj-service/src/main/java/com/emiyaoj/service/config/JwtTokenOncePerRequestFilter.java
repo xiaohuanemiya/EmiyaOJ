@@ -50,19 +50,30 @@ public class JwtTokenOncePerRequestFilter extends OncePerRequestFilter {
             "/swagger-resources/**",
             "/v3/api-docs/**",
             "/webjars/**",
-            "/doc.html"
+            "/doc.html",
+            "/client/problem/page",  // 放行题目列表查询
+            "/client/problem/**",    // 放行题目详情查询
+            "/client/language/**",   // 放行语言查询
+            "/client/submission/page", // 放行提交列表查询
+            "/client/submission/*"   // 放行提交详情查询
     };
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 1. 判断当前请求是否在白名单中
+        // 1. OPTIONS请求直接放行（CORS预检请求）
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 2. 判断当前请求是否在白名单中
         String uri = request.getRequestURI();
         if (isWhitelisted(uri)) {
             filterChain.doFilter(request, response);
             return;
         }
         try {
-            // 2. 校验token
+            // 3. 校验token
             this.validateToken(request);
         } catch (AuthenticationException e) {
             loginFailureHandler.onAuthenticationFailure(request, response, e); // 处理登录失败的异常

@@ -23,7 +23,7 @@ public class ClientSubmissionController {
     private ISubmissionService submissionService;
 
     @Operation(summary = "提交代码")
-    @PostMapping("/client/submit")
+    @PostMapping("/submit")
     public ResponseResult<Long> submitCode(@RequestBody SubmitCodeDTO submitCodeDTO) {
         Long submissionId = submissionService.submitCode(submitCodeDTO);
         return ResponseResult.success(submissionId);
