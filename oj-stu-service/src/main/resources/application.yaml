@@ -1,10 +1,9 @@
 server:
-  port: 8080
+  port: 8081
 spring:
   application:
-    name: oj-service
+    name: oj-stu-service
   datasource:
-    #url: jdbc:mysql://10.30.22.1:3306/emiya-oj?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai
     url: jdbc:mysql://localhost:3306/emiya-oj?serverTimezone=UTC&characterEncoding=utf8&useUnicode=true&useSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: 123456
@@ -14,20 +13,20 @@ spring:
       host: 127.0.0.1
       port: 6379
 
-
 # JWT配置
 jwt:
-  secret-key: EmiyaOJ-JWT-Secret-Key-2024-Very-Long-And-Secure-String-For-HMAC-SHA256-Algorithm # jwt签名加密秘钥 (至少32个字符以满足256位要求)
-  ttl: 7200000 # jwt过期时间, 毫秒
-  token-name: Authorization # 前端传递过来的令牌名称
-
-  # 24小时（毫秒）
+  secret-key: EmiyaOJ-JWT-Secret-Key-2024-Very-Long-And-Secure-String-For-HMAC-SHA256-Algorithm
+  ttl: 7200000
+  token-name: Authorization
 
 # 日志配置
 logging:
   level:
-    com.emiyaoj: DEBUG
+    com.emiyaoj: INFO
+    com.emiyaoj.stu: INFO
     org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+
 # mybatis-plus配置
 mybatis-plus:
   configuration:
@@ -36,7 +35,7 @@ mybatis-plus:
     db-config:
       update-strategy: not_null
       id-type: assign_id
-  type-aliases-package: com.emiyaoj.service.domain.pojo
+  type-aliases-package: com.emiyaoj.stu.domain.pojo
   mapper-locations: classpath:/mapper/**/*.xml
 
 # springdoc-openapi项目配置
@@ -50,9 +49,11 @@ springdoc:
   group-configs:
     - group: 'default'
       paths-to-match: '/**'
-      packages-to-scan: com.emiyaoj.service.controller
-# knife4j的增强配置，不需要增强可以不配
+      packages-to-scan: com.emiyaoj.stu.controller
+
+# knife4j的增强配置
 knife4j:
   enable: true
   setting:
     language: zh_cn
+
