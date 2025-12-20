@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 public class GoJudgeService {
     
-    @Value("${gojudge.url:http://127.0.0.1:12812}")
+    @Value("${GoJudge.url}")
     private String goJudgeUrl;
     
     private final RestTemplate restTemplate;

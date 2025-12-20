@@ -17,8 +17,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BlogCommentSaveDTO {
-    private Long userId;
-    
     @NotBlank
     @Size(max = 200, message = "评论长度不能超过200")
     private String content;

@@ -14,8 +14,6 @@ import java.time.LocalDateTime;
  */
 @Data
 public class CommentQueryDTO {
-    private Long userId;
-    
     private Long blogId;
     
     private LocalDateTime fromDay;

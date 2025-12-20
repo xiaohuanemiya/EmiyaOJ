@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * <h1>博客VO</h1>
@@ -30,4 +31,6 @@ public class BlogVO {
     private LocalDateTime createTime;
     
     private LocalDateTime updateTime;
+
+    private List<BlogTagVO> tags;
 }

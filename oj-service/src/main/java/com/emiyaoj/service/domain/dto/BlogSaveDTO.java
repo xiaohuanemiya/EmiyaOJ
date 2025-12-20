@@ -19,9 +19,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BlogSaveDTO {
-//    @NotNull
-    // 考虑到前端可能不会缓存用户id，所以前端请求时不必带此字段，而是由后端解析token后自动存储
-    private Long userId;
     
     @NotBlank(message = "标题不能为空")
     @Size(max = 50, message = "标题长度不能超过50")

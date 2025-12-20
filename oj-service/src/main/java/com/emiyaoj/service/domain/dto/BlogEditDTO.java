@@ -17,10 +17,7 @@ public class BlogEditDTO {
      * 博客id，前端参数写到路径上，后端再调用Setter方法
      */
     private Long id;
-    
-    @NotNull
-    private Long userId;
-    
+
     @NotBlank(message = "标题不能为空")
     @Size(max = 50, message = "标题长度不能超过50个字符")
     private String title;

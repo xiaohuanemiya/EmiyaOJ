@@ -48,7 +48,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     public List<BlogVO> selectAll() {
         return list().stream()
                .filter(b -> b.getDeleted() == 0)
-               .map(b -> new BlogVO(b.getId(), b.getUserId(), b.getTitle(), b.getContent(), b.getCreateTime(), b.getUpdateTime()))
+               .map(this::convertBlogToVO)
                .toList();
     }
     
@@ -57,7 +57,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         Page<Blog> page = new PageDTO(queryDTO.getPageNo(), queryDTO.getPageSize(), null, null).toMpPageDefaultSortByCreateTimeDesc();
         LambdaQueryWrapper<Blog> wrapper = new LambdaQueryWrapper<Blog>()
                                            .eq(Blog::getDeleted, 0)  // 未被删除
-                                           .eq(queryDTO.getUserId() != null, Blog::getUserId, queryDTO.getUserId())  // 指定用户
                                            .like(!ObjectUtils.isEmpty(queryDTO.getTitle()), Blog::getTitle, queryDTO.getTitle());  // 模糊查询
         // 查当天
         Optional.ofNullable(queryDTO.getCreateTime()).ifPresent(t -> {
@@ -78,7 +77,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
             return false;
         }
         
-        Blog blog = new Blog(null, saveDTO.getUserId(), saveDTO.getTitle(), saveDTO.getContent(), LocalDateTime.now(), LocalDateTime.now(), 0);
+        Blog blog = new Blog(null, -1L, saveDTO.getTitle(), saveDTO.getContent(), LocalDateTime.now(), LocalDateTime.now(), 0);
         if (!this.save(blog)) {  // 插入不成功尝试再删除（未找到合适的测试内容）
             try {
                 this.deleteBlogById(blog.getId());
@@ -98,16 +97,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     
     @Override
     public boolean deleteBlogById(Long blogId) {
-        boolean isAccessibleOperation = AuthUtils.checkAnyRoleThenUserLogin(userLogin -> {
-            Long userId = userLogin.getUser().getId();
-            Blog blog = this.getById(userId);
-            return blog.getUserId().equals(userId);
-        }, "ROLE_MANAGER", "ROLE_ADMIN");
-        
-        if (!isAccessibleOperation) {
-            return false;
-        }
-        
         blogTagAssociationMapper.delete(new LambdaQueryWrapper<BlogTagAssociation>().eq(BlogTagAssociation::getBlogId, blogId));
         return this.updateById(new Blog(blogId, null, null, null, null, LocalDateTime.now(), 1));
     }
@@ -115,15 +104,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     @Override
     public boolean editBlog(BlogEditDTO editDTO) {
         Long blogId = editDTO.getId();
-        
-        boolean isAccessibleOperation = AuthUtils.checkAnyRoleThenUserLogin(userLogin -> {
-            if (blogId == null) return false;
-            Long userId = userLogin.getUser().getId();
-            Blog blog = this.getById(blogId);
-            return blog != null && blog.getUserId().equals(userId);
-        }, "ROLE_ADMIN", "ROLE_MANAGER");
-        
-        return isAccessibleOperation &&
+
+        return
                this.updateById(new Blog(
                blogId,
                null,
@@ -168,7 +150,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<BlogComment>()
                                                   .eq(BlogComment::getDeleted, 0)
                                                   .eq(queryDTO.getBlogId() != null, BlogComment::getBlogId, queryDTO.getBlogId())
-                                                  .eq(queryDTO.getUserId() != null, BlogComment::getUserId, queryDTO.getUserId())
                                                   .ge(queryDTO.getFromDay() != null, BlogComment::getCreateTime, queryDTO.getFromDay())
                                                   .le(queryDTO.getToDay() != null, BlogComment::getCreateTime, queryDTO.getToDay());
         List<BlogComment> blogComments = blogCommentMapper.selectList(wrapper);
@@ -177,9 +158,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     
     @Override
     public boolean saveComment(Long blogId, BlogCommentSaveDTO blogCommentSaveDTO) {
-        Long userId = blogCommentSaveDTO.getUserId();
-        if (userId == null) return false;
-        BlogComment blogComment = new BlogComment(null, blogId, userId, blogCommentSaveDTO.getContent(), LocalDateTime.now(), LocalDateTime.now(), 0);
+        BlogComment blogComment = new BlogComment(null, blogId, -1L, blogCommentSaveDTO.getContent(), LocalDateTime.now(), LocalDateTime.now(), 0);
         int i = blogCommentMapper.insert(blogComment);
         return i == 1;
     }
@@ -190,11 +169,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
             // 检查操作者是不是当前博客发布者或管理员
             BlogComment blogComment = blogCommentMapper.selectById(commentId);
             if (blogComment == null) return HttpServletResponse.SC_NOT_FOUND;  // 不存在指定评论
-            Long blogId = blogComment.getBlogId();
-            Blog blog = this.getById(blogId);
-            Long fromUserId = blog.getUserId();
-            boolean accessibleOperation = AuthUtils.checkAnyRoleThenUserLogin(ul -> ul.getUser().getId().equals(fromUserId), "ROLE_MANAGER", "ROLE_ADMIN");
-            if (!accessibleOperation) return HttpServletResponse.SC_FORBIDDEN;
             blogCommentMapper.deleteById(commentId);
             return HttpServletResponse.SC_OK;
         } catch (Exception e) {
@@ -207,6 +181,21 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         if (blog == null) return null;
         BlogVO blogVO = new BlogVO();
         BeanUtils.copyProperties(blog, blogVO);
+
+        // 查询博客关联的标签
+        List<Long> tagIds = blogTagAssociationMapper.selectList(
+                new LambdaQueryWrapper<BlogTagAssociation>().eq(BlogTagAssociation::getBlogId, blog.getId())
+        ).stream().map(BlogTagAssociation::getTagId).toList();
+
+        if (!tagIds.isEmpty()) {
+            List<BlogTagVO> tags = blogTagMapper.selectByIds(tagIds).stream()
+                    .map(tag -> new BlogTagVO(tag.getId(), tag.getName(), tag.getDesc()))
+                    .toList();
+            blogVO.setTags(tags);
+        } else {
+            blogVO.setTags(List.of());
+        }
+
         return blogVO;
     }
     

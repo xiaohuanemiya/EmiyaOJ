@@ -1,4 +1,4 @@
-package com.emiyaoj.service.controller;
+package com.emiyaoj.service.controller.client;
 
 import com.emiyaoj.common.domain.PageDTO;
 import com.emiyaoj.common.domain.PageVO;
@@ -18,12 +18,12 @@ import java.util.List;
 
 @Tag(name = "博客管理")
 @RestController
-@RequestMapping("/blog")
+@RequestMapping("/client/blog")
 @RequiredArgsConstructor
-public class BlogController {
+public class ClientBlogController {
     private final IUserBlogService userBlogService;
     private final IBlogService blogService;
-    
+
     /**
      * 查所有博客
      */
@@ -33,7 +33,7 @@ public class BlogController {
         List<BlogVO> vos = blogService.selectAll();
         return ResponseResult.success(vos);
     }
-    
+
     /**
      *发布博客
      */
@@ -43,7 +43,7 @@ public class BlogController {
         boolean success = blogService.saveBlog(blogSaveDTO);
         return success ? ResponseResult.success() : ResponseResult.fail("添加失败");
     }
-    
+
     /**
      * 分页条件查博客
      */
@@ -53,7 +53,7 @@ public class BlogController {
         PageVO<BlogVO> vos = blogService.select(blogQueryDTO);
         return ResponseResult.success(vos);
     }
-    
+
     /**
      * 获取指定博客信息，对应点击进入博客操作
      */
@@ -63,7 +63,7 @@ public class BlogController {
         BlogVO vo = blogService.selectBlogById(bid);
         return vo != null ? ResponseResult.success(vo) : ResponseResult.fail(404, "未找到该博客");
     }
-    
+
     /**
      * 删博客（逻辑删）
      */
@@ -73,7 +73,7 @@ public class BlogController {
         boolean success = blogService.deleteBlogById(bid);
         return success ? ResponseResult.success() : ResponseResult.fail("删除失败");
     }
-    
+
     /**
      * 改博客
      */
@@ -86,7 +86,7 @@ public class BlogController {
         boolean success = blogService.editBlog(blogEditDTO);
         return success ? ResponseResult.success() : ResponseResult.fail("修改失败");
     }
-    
+
     /**
      * 查评论
      */
@@ -97,7 +97,7 @@ public class BlogController {
         PageVO<CommentVO> vos = blogService.selectCommentPage(bid, pageDTO);
         return vos != null ? ResponseResult.success(vos) : ResponseResult.fail(404, "未找到该博客");
     }
-    
+
     /**
      * 发表评论
      */
@@ -107,7 +107,7 @@ public class BlogController {
         boolean success = blogService.saveComment(bid, blogCommentSaveDTO);
         return success ? ResponseResult.success() : ResponseResult.fail("添加失败");
     }
-    
+
     /**
      * 用户收藏博客
      */
@@ -117,7 +117,7 @@ public class BlogController {
         boolean success = userBlogService.starBlog(bid);
         return success ? ResponseResult.success() : ResponseResult.fail("收藏失败");
     }
-    
+
     /**
      * 用户取消收藏博客
      */
@@ -127,7 +127,7 @@ public class BlogController {
         boolean success = userBlogService.unstarBlog(bid);
         return success ? ResponseResult.success() : ResponseResult.fail("取消失败");
     }
-    
+
     /**
      * 查博客模块用户信息
      * @see com.emiyaoj.service.domain.pojo.UserBlog
@@ -138,7 +138,7 @@ public class BlogController {
         UserBlogVO vo = userBlogService.selectUserBlogById(uid);
         return vo != null ? ResponseResult.success(vo) : ResponseResult.fail(404, "未找到该用户");
     }
-    
+
     /**
      * 分页条件查用户发表的博客
      */
@@ -149,7 +149,7 @@ public class BlogController {
         PageVO<BlogVO> pageVO = userBlogService.selectUserBlogBlogs(blogsQueryDTO);
         return pageVO != null ? ResponseResult.success(pageVO) : ResponseResult.fail(404, "未找到该用户");
     }
-    
+
     /**
      * 分页条件查用户收藏的博客
      */
@@ -160,7 +160,7 @@ public class BlogController {
         PageVO<BlogVO> pageVO = userBlogService.selectUserBlogStars(starsQueryDTO);
         return pageVO != null ? ResponseResult.success(pageVO) : ResponseResult.fail(404, "未找到该用户");
     }
-    
+
     /**
      * 查所有tag
      */
@@ -170,7 +170,7 @@ public class BlogController {
         List<BlogTagVO> vos = blogService.selectAllTags();
         return ResponseResult.success(vos);
     }
-    
+
     /**
      * 查评论
      */
@@ -180,7 +180,7 @@ public class BlogController {
         List<CommentVO> comments = blogService.selectComment(queryDTO);
         return comments != null ? ResponseResult.success(comments) : ResponseResult.fail(404, "未找到该用户");
     }
-    
+
     /**
      * 获取指定评论
      */
@@ -190,7 +190,7 @@ public class BlogController {
         CommentVO vo = blogService.selectCommentById(cid);
         return vo != null ? ResponseResult.success(vo) : ResponseResult.fail(404, "未找到该评论");
     }
-    
+
     /**
      * 删除评论
      */
