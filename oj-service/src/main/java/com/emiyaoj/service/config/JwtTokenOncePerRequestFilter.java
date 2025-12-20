@@ -50,19 +50,13 @@ public class JwtTokenOncePerRequestFilter extends OncePerRequestFilter {
             "/swagger-resources/**",
             "/v3/api-docs/**",
             "/webjars/**",
-            "/doc.html",
-            "/client/problem/page",  // 放行题目列表查询
-            "/client/problem/**",    // 放行题目详情查询
-            "/client/language/**",   // 放行语言查询
-            "/client/submission/page", // 放行提交列表查询
-            "/client/submission/*"   // 放行提交详情查询
+            "/doc.html"
     };
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // 1. OPTIONS请求直接放行（CORS预检请求）
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            filterChain.doFilter(request, response);
             return;
         }
 

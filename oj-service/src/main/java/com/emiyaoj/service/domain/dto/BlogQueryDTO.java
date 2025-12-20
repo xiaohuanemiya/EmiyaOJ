@@ -18,8 +18,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BlogQueryDTO {
-    // 由后端解析并自动填充
-    private Long userId;
     
     // 模糊搜索，为空默认查全部
     @Size(max = 50, message = "标题长度不能超过50个字符")

@@ -104,12 +104,7 @@ public class SecurityConfig {
                         "/v3/api-docs/**",
                         "/webjars/**",
                         "/doc.html",
-                        "/auth/login",  // 放行登录接口路径
-                        "/client/problem/page",  // 放行题目列表查询
-                        "/client/problem/**",  // 放行题目详情查询
-                        "/client/language/**",  // 放行语言查询
-                        "/client/submission/page",  // 放行提交列表查询
-                        "/client/submission/*"  // 放行提交详情查询
+                        "/auth/login"  // 放行登录接口路径
                 ).permitAll()
                 .anyRequest().authenticated()
         );
