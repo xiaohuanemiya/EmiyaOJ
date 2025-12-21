@@ -11,6 +11,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -20,10 +21,12 @@ public class UserLogin implements UserDetails {
 
     private User user;
     private List<String> permissions;
+    private List<String> roles;
 
-    public UserLogin(User user, List<String> permissions) {
+    public UserLogin(User user, List<String> permissions, List<String> roles) {
         this.user = user;
         this.permissions = permissions;
+        this.roles = roles;
     }
 
     //自定义一个权限列表的集合，中转操作

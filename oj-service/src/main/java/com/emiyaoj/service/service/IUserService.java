@@ -25,7 +25,7 @@ public interface IUserService extends IService<User> {
     /**
      * 分页查询用户列表
      */
-    PageVO<UserVO> selectUserPage2(@Valid PageDTO pageDTO);
+    PageVO<UserVO> selectUserPage(@Valid PageDTO pageDTO);
 
     /**
      * 根据ID查询用户信息

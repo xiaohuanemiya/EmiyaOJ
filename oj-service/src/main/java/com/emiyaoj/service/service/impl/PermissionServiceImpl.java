@@ -34,7 +34,6 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
 
     private final RolePermissionMapper rolePermissionMapper;
     private final UserRoleMapper userRoleMapper;
-    private final UserPermissionMapper userPermissionMapper;
 
     @Override
     public List<PermissionVO> selectPermissionList(PermissionQueryDTO queryDTO) {
@@ -68,6 +67,7 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
 
         Permission permission = new Permission();
         BeanUtils.copyProperties(saveDTO, permission);
+        permission.setPermissionType(convertPermissionType(saveDTO.getPermissionType()));  // TODO: 优化权限类型转化
         permission.setParentId(saveDTO.getParentId() != null ? saveDTO.getParentId() : 0L);
         permission.setStatus(saveDTO.getStatus() != null ? saveDTO.getStatus() : 1);
         permission.setSortOrder(saveDTO.getSortOrder() != null ? saveDTO.getSortOrder() : 0);
@@ -92,6 +92,7 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
 
         Permission permission = new Permission();
         BeanUtils.copyProperties(saveDTO, permission);
+        permission.setPermissionType(convertPermissionType(saveDTO.getPermissionType()));  // TODO: 优化权限类型转化
         permission.setUpdateTime(LocalDateTime.now());
 
         return this.updateById(permission);
@@ -180,14 +181,6 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
             permissionIds.addAll(rolePermissionIds);
         }
 
-        // 获取用户直接授予的权限
-        List<Long> grantedPermissionIds = userPermissionMapper.selectGrantedPermissionIdsByUserId(userId);
-        permissionIds.addAll(grantedPermissionIds);
-
-        // 获取用户直接拒绝的权限
-        List<Long> deniedPermissionIds = userPermissionMapper.selectDeniedPermissionIdsByUserId(userId);
-        permissionIds.removeAll(deniedPermissionIds);
-
         if (permissionIds.isEmpty()) {
             return List.of();
         }
@@ -231,28 +224,7 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
         return rootPermissions;
     }
 
-    @Override
-    public List<PermissionVO> getMenuTree(Long userId) {
-        List<PermissionVO> userPermissions = selectPermissionsByUserId(userId);
 
-        // 只获取菜单类型的权限
-        List<PermissionVO> menuPermissions = userPermissions.stream()
-                .filter(p -> p.getPermissionType() == 1) // 1-菜单
-                .collect(Collectors.toList());
-
-        return buildPermissionTree(menuPermissions);
-    }
-
-    @Override
-    public List<String> getButtonPermissions(Long userId) {
-        List<PermissionVO> userPermissions = selectPermissionsByUserId(userId);
-
-        // 只获取按钮类型的权限
-        return userPermissions.stream()
-                .filter(p -> p.getPermissionType() == 2) // 2-按钮
-                .map(PermissionVO::getPermissionCode)
-                .collect(Collectors.toList());
-    }
 
     private LambdaQueryWrapper<Permission> buildQueryWrapper(PermissionQueryDTO queryDTO) {
         LambdaQueryWrapper<Permission> wrapper = new LambdaQueryWrapper<>();
@@ -287,9 +259,18 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
 
         // 设置权限类型描述
         switch (permission.getPermissionType()) {
-            case PermissionTypeEnum.MENU -> permissionVO.setPermissionTypeDesc("菜单");
-            case PermissionTypeEnum.BUTTON -> permissionVO.setPermissionTypeDesc("按钮");
-            case PermissionTypeEnum.LINK -> permissionVO.setPermissionTypeDesc("接口");
+            case PermissionTypeEnum.MENU -> {
+                permissionVO.setPermissionTypeDesc("菜单");
+                permissionVO.setPermissionType(1);
+            }
+            case PermissionTypeEnum.BUTTON -> {
+                permissionVO.setPermissionTypeDesc("按钮");
+                permissionVO.setPermissionType(2);
+            }
+            case PermissionTypeEnum.LINK -> {
+                permissionVO.setPermissionTypeDesc("接口");
+                permissionVO.setPermissionType(3);
+            }
             default -> permissionVO.setPermissionTypeDesc("未知");
         }
 
@@ -297,5 +278,15 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
         permissionVO.setStatusDesc(permission.getStatus() == 1 ? "启用" : "禁用");
 
         return permissionVO;
+    }
+    
+    // vo -> pojo
+    private PermissionTypeEnum convertPermissionType(Integer voType) {
+        return switch (voType) {
+            case 1 -> PermissionTypeEnum.MENU;
+            case 2 -> PermissionTypeEnum.BUTTON;
+            case 3 -> PermissionTypeEnum.LINK;
+            default -> throw new RuntimeException("非法的枚举类型");  // TODO: 异常类型待确定
+        };
     }
 }

@@ -51,9 +51,9 @@ public class MyFastJsonConfig implements WebMvcConfigurer {
         config.setWriterFeatures(
                 // 美化输出
                 JSONWriter.Feature.PrettyFormat,
-                // 写入Map时保留null值
+                // 输出Map的null值
                 JSONWriter.Feature.WriteMapNullValue,
-                // 写入List时保留null值
+                // 将List类型的null转成[]
                 JSONWriter.Feature.WriteNullListAsEmpty
         );
 

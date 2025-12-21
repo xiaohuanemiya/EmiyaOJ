@@ -1,6 +1,5 @@
 package com.emiyaoj.service.config;
 
-import com.emiyaoj.common.exception.CustomerAuthenticationException;
 import com.emiyaoj.common.handler.AnonymousAuthenticationHandler;
 import com.emiyaoj.common.handler.CustomerAccessDeniedHandler;
 import com.emiyaoj.common.handler.LoginFailureHandler;
@@ -18,6 +17,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 /**
  * @description SpringSecurity配置类
@@ -56,8 +60,28 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+
+    /**
+     * 配置CORS
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("*")); // 允许所有来源
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(false);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+
+        // 配置CORS
+        http.cors(configurer -> configurer.configurationSource(corsConfigurationSource()));
 
         // 添加自定义异常处理类
         http.exceptionHandling(configurer -> {

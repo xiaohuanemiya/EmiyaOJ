@@ -3,6 +3,9 @@ package com.emiyaoj.service.mapper;
 import com.emiyaoj.service.domain.pojo.Role;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -14,5 +17,5 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface RoleMapper extends BaseMapper<Role> {
-
+    List<String> selectRoleCodesByIds(@Param("roleIds") List<Long> roleIds);
 }
