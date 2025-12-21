@@ -77,7 +77,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
             return false;
         }
         
-        Blog blog = new Blog(null, -1L, saveDTO.getTitle(), saveDTO.getContent(), LocalDateTime.now(), LocalDateTime.now(), 0);
+        Blog blog = new Blog(null, AuthUtils.getUserId(), saveDTO.getTitle(), saveDTO.getContent(), LocalDateTime.now(), LocalDateTime.now(), 0);
         if (!this.save(blog)) {  // 插入不成功尝试再删除（未找到合适的测试内容）
             try {
                 this.deleteBlogById(blog.getId());
@@ -108,7 +108,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         return
                this.updateById(new Blog(
                blogId,
-               null,
+               AuthUtils.getUserId(),
                editDTO.getTitle(),
                editDTO.getContent(),
                null,
@@ -158,7 +158,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     
     @Override
     public boolean saveComment(Long blogId, BlogCommentSaveDTO blogCommentSaveDTO) {
-        BlogComment blogComment = new BlogComment(null, blogId, -1L, blogCommentSaveDTO.getContent(), LocalDateTime.now(), LocalDateTime.now(), 0);
+        BlogComment blogComment = new BlogComment(null, blogId, AuthUtils.getUserId(), blogCommentSaveDTO.getContent(), LocalDateTime.now(), LocalDateTime.now(), 0);
         int i = blogCommentMapper.insert(blogComment);
         return i == 1;
     }
