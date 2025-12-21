@@ -351,6 +351,7 @@
         "userId": "456",
         "username": "user1",
         "nickname": "用户昵称",
+        "content": "这是评论内容",
         "createTime": "2025-12-21T10:30:00",
         "updateTime": "2025-12-21T10:30:00"
       }
@@ -702,6 +703,7 @@
       "userId": "456",
       "username": "user1",
       "nickname": "用户昵称",
+      "content": "这是评论内容",
       "createTime": "2025-12-21T10:30:00",
       "updateTime": "2025-12-21T10:30:00"
     }
@@ -746,6 +748,7 @@
     "userId": "456",
     "username": "user1",
     "nickname": "用户昵称",
+    "content": "这是评论内容",
     "createTime": "2025-12-21T10:30:00",
     "updateTime": "2025-12-21T10:30:00"
   }
