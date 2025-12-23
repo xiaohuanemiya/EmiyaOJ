@@ -1,0 +1,22 @@
+package com.emiyaoj.service.domain.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+/**
+ * <h1>博客评论查询DTO</h1>
+ *
+ * @author Erida
+ * @since 2025/10/29
+ */
+@Data
+public class CommentQueryDTO {
+    private Long blogId;
+    
+    private LocalDateTime fromDay;
+    
+    private LocalDateTime toDay;
+}

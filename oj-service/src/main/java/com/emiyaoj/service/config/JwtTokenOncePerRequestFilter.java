@@ -55,14 +55,19 @@ public class JwtTokenOncePerRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 1. 判断当前请求是否在白名单中
+        // 1. OPTIONS请求直接放行（CORS预检请求）
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            return;
+        }
+
+        // 2. 判断当前请求是否在白名单中
         String uri = request.getRequestURI();
         if (isWhitelisted(uri)) {
             filterChain.doFilter(request, response);
             return;
         }
         try {
-            // 2. 校验token
+            // 3. 校验token
             this.validateToken(request);
         } catch (AuthenticationException e) {
             loginFailureHandler.onAuthenticationFailure(request, response, e); // 处理登录失败的异常

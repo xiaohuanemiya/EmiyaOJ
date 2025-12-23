@@ -23,6 +23,9 @@ jwt:
 
   # 24小时（毫秒）
 
+GoJudge:
+  url: http://127.0.0.1:12812
+
 # 日志配置
 logging:
   level:

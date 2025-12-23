@@ -1,114 +1,91 @@
 package com.emiyaoj.service.controller;
 
+import com.emiyaoj.common.domain.PageDTO;
 import com.emiyaoj.common.domain.PageVO;
 import com.emiyaoj.common.domain.ResponseResult;
-import com.emiyaoj.service.domain.dto.ProblemQueryDTO;
 import com.emiyaoj.service.domain.dto.ProblemSaveDTO;
 import com.emiyaoj.service.domain.vo.ProblemVO;
 import com.emiyaoj.service.service.IProblemService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 /**
- * 题目管理控制器
+ * 题目Controller
  */
+@Tag(name = "题目管理")
 @RestController
 @RequestMapping("/problem")
 @RequiredArgsConstructor
-@Slf4j
-@CrossOrigin
 public class ProblemController {
-    
+
     private final IProblemService problemService;
-    
-    /**
-     * 分页查询题目列表
-     */
+
+    @Operation(summary = "分页查询题目")
     @GetMapping("/page")
-    @PreAuthorize("hasAuthority('PROBLEM.LIST')")
-    @Operation(summary = "分页查询题目列表")
-    public ResponseResult<PageVO<ProblemVO>> getProblemPage(@Valid ProblemQueryDTO queryDTO) {
-        // 设置默认值
-        if (queryDTO.getPageNo() == null) {
-            queryDTO.setPageNo(1);
-        }
-        if (queryDTO.getPageSize() == null) {
-            queryDTO.setPageSize(10);
-        }
-        PageVO<ProblemVO> pageVO = problemService.getProblemPage(queryDTO);
-        return ResponseResult.success(pageVO);
+    public ResponseResult<PageVO<ProblemVO>> pageProblems(PageDTO pageDTO,
+                                                          @RequestParam(required = false) Integer difficulty,
+                                                          @RequestParam(required = false) Integer status,
+                                                          @RequestParam(required = false) String keyword) {
+        PageVO<ProblemVO> result = problemService.selectProblemPage(pageDTO, difficulty, status, keyword);
+        return ResponseResult.success(result);
     }
-    
-    /**
-     * 根据ID查询题目详情
-     */
+
+    @Operation(summary = "获取题目详情")
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('PROBLEM.LIST')")
-    @Operation(summary = "根据ID查询题目详情")
-    public ResponseResult<ProblemVO> getProblemById(@PathVariable Long id) {
-        ProblemVO problemVO = problemService.getProblemById(id);
-        return ResponseResult.success(problemVO);
+    public ResponseResult<ProblemVO> getProblemDetail(@PathVariable Long id) {
+        ProblemVO vo = problemService.selectProblemById(id);
+        if (vo == null) {
+            return ResponseResult.fail("题目不存在");
+        }
+        return ResponseResult.success(vo);
     }
     
-    /**
-     * 新增题目
-     */
+    @Operation(summary = "新增题目")
     @PostMapping
     @PreAuthorize("hasAuthority('PROBLEM.ADD')")
-    @Operation(summary = "新增题目")
-    public ResponseResult<Void> addProblem(@Valid @RequestBody ProblemSaveDTO saveDTO) {
-        problemService.saveProblem(saveDTO);
-        return ResponseResult.success();
+    public ResponseResult<Void> saveProblem(@RequestBody @Valid ProblemSaveDTO saveDTO) {
+        boolean result = problemService.saveProblem(saveDTO);
+        return result ? ResponseResult.success() : ResponseResult.fail("新增题目失败");
     }
     
-    /**
-     * 修改题目
-     */
+    @Operation(summary = "修改题目")
     @PutMapping
     @PreAuthorize("hasAuthority('PROBLEM.EDIT')")
-    @Operation(summary = "修改题目")
-    public ResponseResult<Void> updateProblem(@Valid @RequestBody ProblemSaveDTO saveDTO) {
-        problemService.updateProblem(saveDTO);
-        return ResponseResult.success();
+    public ResponseResult<Void> updateProblem(@RequestBody @Valid ProblemSaveDTO saveDTO) {
+        if (saveDTO.getId() == null) {
+            return ResponseResult.fail("题目ID不能为空");
+        }
+        boolean result = problemService.updateProblem(saveDTO);
+        return result ? ResponseResult.success() : ResponseResult.fail("修改题目失败");
     }
     
-    /**
-     * 删除题目
-     */
+    @Operation(summary = "删除题目")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('PROBLEM.DELETE')")
-    @Operation(summary = "删除题目")
     public ResponseResult<Void> deleteProblem(@PathVariable Long id) {
-        problemService.deleteProblem(id);
-        return ResponseResult.success();
+        boolean result = problemService.deleteProblem(id);
+        return result ? ResponseResult.success() : ResponseResult.fail("删除题目失败");
     }
     
-    /**
-     * 批量删除题目
-     */
+    @Operation(summary = "批量删除题目")
     @DeleteMapping("/batch")
     @PreAuthorize("hasAuthority('PROBLEM.DELETE')")
-    @Operation(summary = "批量删除题目")
-    public ResponseResult<Void> batchDeleteProblems(@RequestBody List<Long> ids) {
-        problemService.deleteProblems(ids);
-        return ResponseResult.success();
+    public ResponseResult<Void> deleteProblems(@RequestBody List<Long> ids) {
+        boolean result = problemService.deleteProblems(ids);
+        return result ? ResponseResult.success() : ResponseResult.fail("批量删除题目失败");
     }
     
-    /**
-     * 修改题目状态
-     */
+    @Operation(summary = "修改题目状态")
     @PutMapping("/{id}/status")
     @PreAuthorize("hasAuthority('PROBLEM.EDIT')")
-    @Operation(summary = "修改题目状态")
     public ResponseResult<Void> updateProblemStatus(@PathVariable Long id, @RequestParam Integer status) {
-        problemService.updateProblemStatus(id, status);
-        return ResponseResult.success();
+        boolean result = problemService.updateProblemStatus(id, status);
+        return result ? ResponseResult.success() : ResponseResult.fail("修改题目状态失败");
     }
 }
-
