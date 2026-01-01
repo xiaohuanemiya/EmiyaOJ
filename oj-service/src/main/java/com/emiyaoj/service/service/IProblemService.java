@@ -19,13 +19,13 @@ public interface IProblemService extends IService<Problem> {
      * @param problemId 题目ID
      */
     void incrementAcceptCount(Long problemId);
-    
+
     /**
      * 增加提交次数
      * @param problemId 题目ID
      */
     void incrementSubmitCount(Long problemId);
-    
+
     /**
      * 分页查询题目
      * @param pageDTO 分页参数
@@ -35,14 +35,14 @@ public interface IProblemService extends IService<Problem> {
      * @return 分页结果
      */
     PageVO<ProblemVO> selectProblemPage(PageDTO pageDTO, Integer difficulty, Integer status, String keyword);
-    
+
     /**
      * 根据ID查询题目详情
      * @param id 题目ID
      * @return 题目详情
      */
     ProblemVO selectProblemById(Long id);
-    
+
     /**
      * 新增题目
      * @param saveDTO 题目信息
