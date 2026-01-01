@@ -24,7 +24,6 @@
     <modules>
         <module>oj-common</module>
         <module>oj-service</module>
-        <module>oj-stu-service</module>
     </modules>
     <scm>
         <connection/>
