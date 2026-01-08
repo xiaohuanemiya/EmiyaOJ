@@ -5,13 +5,13 @@ spring:
     name: oj-service
   datasource:
     #url: jdbc:mysql://10.30.22.1:3306/emiya-oj?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai
-    url: jdbc:mysql://localhost:3306/emiya-oj?serverTimezone=UTC&characterEncoding=utf8&useUnicode=true&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://101.34.220.54:3306/emiya-oj?serverTimezone=UTC&characterEncoding=utf8&useUnicode=true&useSSL=false&allowPublicKeyRetrieval=true
     username: root
-    password: 123456
+    password: '@MySQL2025'
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
-      host: 127.0.0.1
+      host: 101.34.220.54
       port: 6379
 
 
@@ -24,7 +24,7 @@ jwt:
   # 24小时（毫秒）
 
 GoJudge:
-  url: http://127.0.0.1:12812
+  url: http://101.34.220.54:12812
 
 # 日志配置
 logging:
